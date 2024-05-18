@@ -4,6 +4,8 @@
     align-items: center;
     display: flex;
     justify-content:space-between;
+    position: sticky;
+    z-index: 1000;
 }
 
 .headerLeft, .headerRight {
