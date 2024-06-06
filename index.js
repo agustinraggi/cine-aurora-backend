@@ -20,18 +20,17 @@ const calculateAge = (birthdate) => {
     return Math.abs(ageDate.getUTCFullYear() - 1970);
 };
 
+// C = CREATE
 app.post("/create", (req, res) => {
-    const correo = req.body.correo
-    const nombre = req.body.nombre
-    const dni = req.body.dni
-    const fecha = req.body.fecha
-    const password = req.body.password
-    const edad = calculateAge(fecha);
+    const { mail, name, dni, date, password } = req.body;
+    const age = calculateAge(date);
 
-    db.query('INSERT INTO cliente (correo, nombre, dni, fecha, edad, password) VALUES (?, ?, ?, ?, ?, ?)', [correo, nombre, dni, fecha, edad, password],
+    db.query('INSERT INTO customer (mail, name, dni, date, age, password) VALUES (?, ?, ?, ?, ?, ?)', 
+    [mail, name, dni, date, age, password],
         (err, result) => {
             if (err) {
                 console.log(err);
+                res.status(500).send("Error al registrar cliente");
             } else {
                 res.send("cliente registrado con EXITO!");
             }
@@ -39,13 +38,48 @@ app.post("/create", (req, res) => {
     );
 });
 
-app.get("/cliente", (req, res) => {
-    db.query('SELECT * FROM cliente',
+// R = READ
+app.get("/customer", (req, res) => {
+    db.query('SELECT * FROM customer',
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                res.status(500).send("Error al obtener datos");
+            } else {
+                res.send(result);
+            }
+        }
+    );
+});
+
+// U = UPDATE
+app.put("/update", (req, res) => {
+    const { id, mail, name, dni, date, password } = req.body;
+    const age = calculateAge(date);
+
+    db.query('UPDATE customer SET mail=?, name=?, dni=?, date=?, age=?, password=? WHERE id=?', 
+    [mail, name, dni, date, age, password, id],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                res.status(500).send("Error al actualizar cliente");
+            } else {
+                res.send("cliente actualizado con EXITO!");
+            }
+        }
+    );
+});
+
+// DELETE
+app.delete("/delete/:id", (req, res) => {
+    const id  = req.params.id;
+
+    db.query('DELETE FROM customer WHERE id=?', id,
         (err, result) => {
             if (err) {
                 console.log(err);
             } else {
-                res.send(result);
+                res.send("cliente eliminado con EXITO!");
             }
         }
     );
