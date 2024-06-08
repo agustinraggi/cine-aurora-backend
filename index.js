@@ -13,6 +13,34 @@ const db = mysql.createConnection({
     database: "cine-aurora"
 });
 
+db.connect((err) => {
+    if (err) {
+        console.log("Error al conectar a la base de datos:", err);
+        return;
+    }
+    console.log("Conectado a la base de datos");
+
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS customer (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            mail VARCHAR(50),
+            name VARCHAR(50),
+            dni DECIMAL(10, 2),
+            date VARCHAR(25),
+            age DECIMAL(10, 2),
+            password VARCHAR(25)
+        )
+    `;
+
+    db.query(createTableQuery, (err, res) => {
+        if (err) {
+            console.log("Error al crear la tabla:", err);
+        } else {
+            console.log("Tabla customer fue creada o ya existía.");
+        }
+    });
+});
+
 const calculateAge = (birthdate) => {
     const birthDate = new Date(birthdate);
     const ageDifMs = Date.now() - birthDate.getTime();
@@ -32,7 +60,7 @@ app.post("/create", (req, res) => {
                 console.log(err);
                 res.status(500).send("Error al registrar cliente");
             } else {
-                res.send("cliente registrado con EXITO!");
+                res.send("¡Cliente registrado con ÉXITO!");
             }
         }
     );
@@ -64,7 +92,7 @@ app.put("/update", (req, res) => {
                 console.log(err);
                 res.status(500).send("Error al actualizar cliente");
             } else {
-                res.send("cliente actualizado con EXITO!");
+                res.send("¡Cliente actualizado con ÉXITO!");
             }
         }
     );
@@ -72,19 +100,20 @@ app.put("/update", (req, res) => {
 
 // DELETE
 app.delete("/delete/:id", (req, res) => {
-    const id  = req.params.id;
+    const id = req.params.id;
 
     db.query('DELETE FROM customer WHERE id=?', id,
         (err, result) => {
             if (err) {
                 console.log(err);
+                res.status(500).send("Error al eliminar cliente");
             } else {
-                res.send("cliente eliminado con EXITO!");
+                res.send("¡Cliente eliminado con ÉXITO!");
             }
         }
     );
 });
 
 app.listen(3001, () => {
-    console.log("corriendo en el puerto 3001");
+    console.log("Corriendo en el puerto 3001");
 });
