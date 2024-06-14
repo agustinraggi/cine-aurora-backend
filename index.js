@@ -30,7 +30,8 @@ db.connect((err) => {
             dni DECIMAL(10, 2),
             date VARCHAR(25),
             age DECIMAL(10, 2),
-            password VARCHAR(255)
+            password VARCHAR(255),
+            guy VARCHAR(25) DEFAULT 'cliente'
         )
     `;
 
@@ -52,14 +53,14 @@ const calculateAge = (birthdate) => {
 
 // Registro de usuario
 app.post("/create", async (req, res) => {
-    const { mail, name, surname,  dni, date, password } = req.body;
+    const { mail, name, surname, dni, date, password, guy = 'cliente' } = req.body;
     const age = calculateAge(date);
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-            [mail, name, surname, dni, date, age, hashedPassword],
+        db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password, guy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+            [mail, name, surname, dni, date, age, hashedPassword, guy],
             (err, result) => {
                 if (err) {
                     console.log(err);
@@ -89,11 +90,11 @@ app.get("/customer", (req, res) => {
 
 // Actualizar usuario
 app.put("/update", (req, res) => {
-    const { id, mail, name, surname, dni, date, password } = req.body;
+    const { id, mail, name, surname, dni, date, password, guy } = req.body;
     const age = calculateAge(date);
 
-    db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=? WHERE id=?', 
-        [mail, name, surname, dni, date, age, password, id],
+    db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, guy=? WHERE id=?', 
+        [mail, name, surname, dni, date, age, password, guy, id],
         (err, result) => {
             if (err) {
                 console.log(err);
