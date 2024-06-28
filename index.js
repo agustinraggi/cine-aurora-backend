@@ -7,149 +7,167 @@ const bcrypt = require('bcrypt');
 app.use(cors());
 app.use(express.json());
 
-const db = mysql.createConnection({
+// Creación de la base de datos si no existe
+const initialDb = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "",
-    database: "cine-aurora"
+    password: ""
 });
 
-db.connect((err) => {
+initialDb.connect((err) => {
     if (err) {
-        console.log("Error al conectar a la base de datos:", err);
+        console.log("Error al conectar a la base de datos inicial:", err);
         return;
     }
-    console.log("Conectado a la base de datos");
+    console.log("Conectado a la base de datos inicial");
 
-    const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS customer (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            mail VARCHAR(50),
-            name VARCHAR(50),
-            surname VARCHAR(50),
-            dni DECIMAL(10, 2),
-            date VARCHAR(25),
-            age DECIMAL(10, 2),
-            password VARCHAR(255),
-            guy VARCHAR(25) DEFAULT 'cliente'
-        )
-    `;
-
-    db.query(createTableQuery, (err, res) => {
+    initialDb.query("CREATE DATABASE IF NOT EXISTS `cine-aurora`", (err, result) => {
         if (err) {
-            console.log("Error al crear la tabla:", err);
-        } else {
-            console.log("Tabla customer fue creada o ya existía.");
+            console.log("Error al crear la base de datos:", err);
+            return;
         }
-    });
-});
+        console.log("Base de datos cine-aurora creada o ya existía.");
 
-const calculateAge = (birthdate) => {
-    const birthDate = new Date(birthdate);
-    const ageDifMs = Date.now() - birthDate.getTime();
-    const ageDate = new Date(ageDifMs);
-    return Math.abs(ageDate.getUTCFullYear() - 1970);
-};
+        // Conexión a la base de datos cine-aurora
+        const db = mysql.createConnection({
+            host: "localhost",
+            user: "root",
+            password: "",
+            database: "cine-aurora"
+        });
 
-// Registro de usuario
-app.post("/create", async (req, res) => {
-    const { mail, name, surname, dni, date, password, guy = 'cliente' } = req.body;
-    const age = calculateAge(date);
-
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password, guy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-            [mail, name, surname, dni, date, age, hashedPassword, guy],
-            (err, result) => {
+        db.connect((err) => {
+            if (err) {
+                console.log("Error al conectar a la base de datos:", err);
+                return;
+            }
+            console.log("Conectado a la base de datos cine-aurora");
+            
+            // Creación de la tabla si no existe
+            const createTableQuery = `
+                CREATE TABLE IF NOT EXISTS customer (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    mail VARCHAR(50),
+                    name VARCHAR(50),
+                    surname VARCHAR(50),
+                    dni DECIMAL(10, 2),
+                    date VARCHAR(25),
+                    age DECIMAL(10, 2),
+                    password VARCHAR(255),
+                    guy VARCHAR(25) DEFAULT 'cliente'
+                )
+            `;
+            db.query(createTableQuery, (err, res) => {
                 if (err) {
-                    console.log(err);
-                    res.status(500).send("Error al registrar cliente");
+                    console.log("Error al crear la tabla:", err);
                 } else {
-                    res.send("¡Cliente registrado con ÉXITO!");
+                    console.log("Tabla customer fue creada o ya existía.");
                 }
-            }
-        );
-    } catch (error) {
-        console.error("Error al encriptar la contraseña:", error);
-        res.status(500).send("Error al registrar cliente");
-    }
-});
+            });
 
-// Leer todos los usuarios
-app.get("/customer", (req, res) => {
-    db.query('SELECT * FROM customer', (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Error al obtener datos");
-        } else {
-            res.send(result);
-        }
-    });
-});
+            // Función para calcular la edad
+            const calculateAge = (birthdate) => {
+                const birthDate = new Date(birthdate);
+                const ageDifMs = Date.now() - birthDate.getTime();
+                const ageDate = new Date(ageDifMs);
+                return Math.abs(ageDate.getUTCFullYear() - 1970);
+            };
 
-// Actualizar usuario
-app.put("/update", (req, res) => {
-    const { id, mail, name, surname, dni, date, password, guy } = req.body;
-    const age = calculateAge(date);
+            // Registro de usuario
+            app.post("/create", async (req, res) => {
+                const { mail, name, surname, dni, date, password, guy = 'cliente' } = req.body;
+                const age = calculateAge(date);
+                try {
+                    const hashedPassword = await bcrypt.hash(password, 10);
+                    db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password, guy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                        [mail, name, surname, dni, date, age, hashedPassword, guy],
+                        (err, result) => {
+                            if (err) {
+                                console.log(err);
+                                res.status(500).send("Error al registrar cliente");
+                            } else {
+                                res.send("¡Cliente registrado con ÉXITO!");
+                            }
+                        }
+                    );
+                } catch (error) {
+                    console.error("Error al encriptar la contraseña:", error);
+                    res.status(500).send("Error al registrar cliente");
+                }
+            });
 
-    db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, guy=? WHERE id=?', 
-        [mail, name, surname, dni, date, age, password, guy, id],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send("Error al actualizar cliente");
-            } else {
-                res.send("¡Cliente actualizado con ÉXITO!");
-            }
-        }
-    );
-});
+            // Leer todos los usuarios
+            app.get("/customer", (req, res) => {
+                db.query('SELECT * FROM customer', (err, result) => {
+                    if (err) {
+                        console.log(err);
+                        res.status(500).send("Error al obtener datos");
+                    } else {
+                        res.send(result);
+                    }
+                });
+            });
 
-// Eliminar usuario
-app.delete("/delete/:id", (req, res) => {
-    const id = req.params.id;
+            // Actualizar usuario
+            app.put("/update", (req, res) => {
+                const { id, mail, name, surname, dni, date, password, guy } = req.body;
+                const age = calculateAge(date);
+                db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, guy=? WHERE id=?', 
+                    [mail, name, surname, dni, date, age, password, guy, id],
+                    (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            res.status(500).send("Error al actualizar cliente");
+                        } else {
+                            res.send("¡Cliente actualizado con ÉXITO!");
+                        }
+                    }
+                );
+            });
 
-    db.query('DELETE FROM customer WHERE id=?', id,
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send("Error al eliminar cliente");
-            } else {
-                res.send("¡Cliente eliminado con ÉXITO!");
-            }
-        }
-    );
-});
+            // Eliminar usuario
+            app.delete("/delete/:id", (req, res) => {
+                const id = req.params.id;
+                db.query('DELETE FROM customer WHERE id=?', id,
+                    (err, result) => {
+                        if (err) {
+                            console.log(err);
+                            res.status(500).send("Error al eliminar cliente");
+                        } else {
+                            res.send("¡Cliente eliminado con ÉXITO!");
+                        }
+                    }
+                );
+            });
 
-// Inicio de sesión
-app.post("/login", (req, res) => {
-    const { mail, password } = req.body;
-
-    db.query("SELECT * FROM customer WHERE mail = ?", [mail], async (err, results) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).send("Error en el servidor");
-        }
-
-        if (results.length === 0) {
-            return res.status(400).send("Correo o contraseña incorrectos");
-        }
-
-        const user = results[0];
-
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(400).send("Correo o contraseña incorrectos");
-        }
-
-        res.send({
-            success: true,
-            user: { name: user.name, email: user.mail }
+            // Inicio de sesión
+            app.post("/login", (req, res) => {
+                const { mail, password } = req.body;
+                db.query("SELECT * FROM customer WHERE mail = ?", [mail], async (err, results) => {
+                    if (err) {
+                        console.log(err);
+                        return res.status(500).send("Error en el servidor");
+                    }
+                    if (results.length === 0) {
+                        return res.status(400).send("Correo o contraseña incorrectos");
+                    }
+                    const user = results[0];
+                    const match = await bcrypt.compare(password, user.password);
+                    if (!match) {
+                        return res.status(400).send("Correo o contraseña incorrectos");
+                    }
+                    res.send({
+                        success: true,
+                        user: { name: user.name, email: user.mail }
+                    });
+                });
+            });
+            const PORT = process.env.PORT || 3001;
+            app.listen(PORT, () => {
+                console.log(`Servidor corriendo en el puerto ${PORT}`);
+            });
         });
     });
-});
 
-app.listen(3001, () => {
-    console.log("Corriendo en el puerto 3001");
+    initialDb.end();
 });
