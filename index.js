@@ -54,7 +54,7 @@ initialDb.connect((err) => {
                     date VARCHAR(25),
                     age DECIMAL(10, 2),
                     password VARCHAR(255),
-                    guy VARCHAR(25) DEFAULT 'cliente'
+                    tips VARCHAR(25) DEFAULT 'cliente'
                 )
             `;
             db.query(createTableQuery, (err, res) => {
@@ -75,12 +75,12 @@ initialDb.connect((err) => {
 
             // Registro de usuario
             app.post("/create", async (req, res) => {
-                const { mail, name, surname, dni, date, password, guy = 'cliente' } = req.body;
+                const { mail, name, surname, dni, date, password, tips = 'cliente' } = req.body;
                 const age = calculateAge(date);
                 try {
                     const hashedPassword = await bcrypt.hash(password, 10);
-                    db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password, guy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                        [mail, name, surname, dni, date, age, hashedPassword, guy],
+                    db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password, tips) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+                        [mail, name, surname, dni, date, age, hashedPassword, tips],
                         (err, result) => {
                             if (err) {
                                 console.log(err);
@@ -110,10 +110,10 @@ initialDb.connect((err) => {
 
             // Actualizar usuario
             app.put("/update", (req, res) => {
-                const { id, mail, name, surname, dni, date, password, guy } = req.body;
+                const { id, mail, name, surname, dni, date, password, tips } = req.body;
                 const age = calculateAge(date);
-                db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, guy=? WHERE id=?', 
-                    [mail, name, surname, dni, date, age, password, guy, id],
+                db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, tips=? WHERE id=?', 
+                    [mail, name, surname, dni, date, age, password, tips, id],
                     (err, result) => {
                         if (err) {
                             console.log(err);
@@ -158,7 +158,11 @@ initialDb.connect((err) => {
                     }
                     res.send({
                         success: true,
-                        user: { name: user.name, email: user.mail }
+                        user: {
+                            name: user.name,
+                            email: user.mail,
+                            tips: user.tips
+                        }
                     });
                 });
             });
