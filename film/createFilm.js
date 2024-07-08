@@ -17,18 +17,6 @@ db.connect((err) => {
     }
 });
 
-// Mostrar Películas
-router.get("/showFilm", (req, res) => {
-    db.query('SELECT * FROM film', (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Error al obtener datos");
-        } else {
-            res.send(result);
-        }
-    });
-});
-
 // Registro de película
 router.post("/createFilm", (req, res) => {
     const { codeFilm, nameFilm } = req.body;
@@ -43,6 +31,30 @@ router.post("/createFilm", (req, res) => {
             }
         }
     );
+});
+// Leer todas las películas
+router.get("/allFilm", (req, res) => {
+    db.query("SELECT * FROM film", (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Error al obtener datos");
+        } else {
+            res.send(result);
+        }
+    });
+});
+
+// Eliminar película
+router.delete("/deleteFilm/:id", (req, res) => {
+    const id = req.params.id;
+    db.query("DELETE FROM film WHERE id = ?", [id], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Error al eliminar película");
+        } else {
+            res.send("¡Película eliminada con ÉXITO!");
+        }
+    });
 });
 
 module.exports = router;
