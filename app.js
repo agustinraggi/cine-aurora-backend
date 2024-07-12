@@ -15,7 +15,7 @@ app.use(express.json());
 
 // Configuración de Mercado Pago
 const client = new MercadoPagoConfig({
-  accessToken: "TEST-8772233994679775-071021-e7cb928820036909642719afef88489f-309428726",
+    accessToken: "APP_USR-8112502912330115-071119-32c5f0d15c4eee6274f9e0a5181b8c07-1896819568",
 });
 
 // Conexión principal a MySQL
@@ -75,9 +75,9 @@ db.connect((err) => {
                             },
                         ],
                         back_urls: {
-                            success: "https://www.youtube.com/@onthecode",
-                            failure: "https://www.youtube.com/@onthecode",
-                            pending: "https://www.youtube.com/@onthecode",
+                            success: "http://localhost:3000/",
+                            failure: "http://localhost:3000/",
+                            pending: "http://localhost:3000/",
                         },
                         auto_return: "approved",
                     };
