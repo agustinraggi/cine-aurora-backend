@@ -19,7 +19,7 @@ function initDatabase() {
         // Creación de la tabla de usuarios si no existe
         const createTableQuery = `
             CREATE TABLE IF NOT EXISTS customer (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                idUser INT AUTO_INCREMENT PRIMARY KEY,
                 mail VARCHAR(50),
                 name VARCHAR(50),
                 surname VARCHAR(50),

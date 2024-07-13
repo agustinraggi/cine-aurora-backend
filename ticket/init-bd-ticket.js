@@ -15,20 +15,27 @@ function initDatabase() {
             console.error("Error al conectar a la base de datos cine-aurora:", err);
             return;
         }
-
-        // Creación de la tabla de películas si no existe
+        
+        // Creación de la tabla de ticket si no existe
         const createTableQuery = `
-            CREATE TABLE IF NOT EXISTS film (
-                idFilm INT AUTO_INCREMENT PRIMARY KEY,
-                codeFilm INT,
-                nameFilm VARCHAR(50)
+            CREATE TABLE IF NOT EXISTS ticket (
+                idTicket INT AUTO_INCREMENT PRIMARY KEY,
+                nameFilm VARCHAR(50),
+                chair VARCHAR(50),
+                finalPrice DECIMAL(10, 2),
+                voucher VARCHAR(100),
+                idUser INT,
+                purchaseDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(20) DEFAULT 'active',
+                FOREIGN KEY (idUser) REFERENCES customer(idUser)
             )
         `;
+
         db.query(createTableQuery, (err, res) => {
             if (err) {
-                console.error("Error al crear la tabla film:", err);
+                console.error("Error al crear la tabla ticket:", err);
             } else {
-                console.log("Tabla film fue creada o ya existía.");
+                console.log("Tabla ticket fue creada o ya existía.");
             }
             db.end();
         });

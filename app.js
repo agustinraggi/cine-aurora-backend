@@ -5,8 +5,12 @@ const { MercadoPagoConfig, Preference } = require("mercadopago");
 
 const userRoutes = require("./user/createUser");
 const initDatabaseUser = require("./user/init-bd-user");
+
 const filmRoutes = require("./film/createFilm");
 const initDatabaseFilm = require("./film/init-bd-film");
+
+const ticketRoutes = require("./ticket/createTicket")
+const initDatabaseTicket = require("./ticket/init-bd-ticket");
 
 const app = express();
 
@@ -44,6 +48,7 @@ db.connect((err) => {
 
         initDatabaseUser();
         initDatabaseFilm();
+        initDatabaseTicket();
 
         const dbCineAurora = mysql.createConnection({
             host: "localhost",
@@ -62,6 +67,7 @@ db.connect((err) => {
 
             app.use(userRoutes);
             app.use(filmRoutes);
+            app.use(ticketRoutes);
 
             app.post("/create_preference", async (req, res) => {
                 try {

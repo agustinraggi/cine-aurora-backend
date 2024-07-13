@@ -4,7 +4,7 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "node ./user/init-bd-user.js && node ./film/init-bd-film.js && node app.js",
+    "start": "node ./user/init-bd-user.js && node ./film/init-bd-film.js && node ./ticket/init-bd-ticket.js && node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

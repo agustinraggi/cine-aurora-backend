@@ -63,10 +63,10 @@ router.get("/customer", (req, res) => {
 
 // Actualizar usuario
 router.put("/update", (req, res) => {
-    const { id, mail, name, surname, dni, date, password, tips } = req.body;
+    const { idUser, mail, name, surname, dni, date, password, tips } = req.body;
     const age = calculateAge(date);
-    db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, tips=? WHERE id=?', 
-        [mail, name, surname, dni, date, age, password, tips, id],
+    db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, tips=? WHERE idUser=?', 
+        [mail, name, surname, dni, date, age, password, tips, idUser],
         (err, result) => {
             if (err) {
                 console.log(err);
@@ -79,9 +79,9 @@ router.put("/update", (req, res) => {
 });
 
 // Eliminar usuario
-router.delete("/delete/:id", (req, res) => {
-    const id = req.params.id;
-    db.query('DELETE FROM customer WHERE id=?', id,
+router.delete("/delete/:idUser", (req, res) => {
+    const idUser = req.params.idUser;
+    db.query('DELETE FROM customer WHERE idUser=?', idUser,
         (err, result) => {
             if (err) {
                 console.log(err);
@@ -112,6 +112,7 @@ router.post("/login", (req, res) => {
         res.send({
             success: true,
             user: {
+                id: user.idUser,
                 name: user.name,
                 email: user.mail,
                 tips: user.tips
@@ -119,5 +120,6 @@ router.post("/login", (req, res) => {
         });
     });
 });
+
 
 module.exports = router;
