@@ -32,6 +32,7 @@ router.post("/createFilm", (req, res) => {
         }
     );
 });
+
 // Leer todas las películas
 router.get("/allFilm", (req, res) => {
     db.query("SELECT * FROM film", (err, result) => {
@@ -44,10 +45,10 @@ router.get("/allFilm", (req, res) => {
     });
 });
 
-// Eliminar película
-router.delete("/deleteFilm/:id", (req, res) => {
-    const id = req.params.id;
-    db.query("DELETE FROM film WHERE id = ?", [id], (err, result) => {
+// Eliminar película por ID
+router.delete("/deleteFilm/:idFilm", (req, res) => {
+    const idFilm = req.params.idFilm;
+    db.query("DELETE FROM film WHERE idFilm = ?", [idFilm], (err, result) => {
         if (err) {
             console.log(err);
             res.status(500).send("Error al eliminar película");

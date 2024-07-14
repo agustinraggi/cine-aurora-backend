@@ -90,13 +90,13 @@ router.put("/update", async (req, res) => {
 // Eliminar usuario
 router.delete("/delete/:idUser", (req, res) => {
     const idUser = req.params.idUser;
-    db.query('DELETE FROM customer WHERE idUser=?', idUser,
+    db.query('DELETE FROM customer WHERE idUser=?', [idUser],
         (err, result) => {
             if (err) {
                 console.log(err);
-                res.status(500).send("Error al eliminar cliente");
+                res.status(500).send({ success: false, message: "Error al eliminar cliente" });
             } else {
-                res.send("¡Cliente eliminado con ÉXITO!");
+                res.send({ success: true, message: "Cliente eliminado con éxito" });
             }
         }
     );
