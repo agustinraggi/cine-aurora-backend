@@ -62,20 +62,29 @@ router.get("/customer", (req, res) => {
 });
 
 // Actualizar usuario
-router.put("/update", (req, res) => {
-    const { idUser, mail, name, surname, dni, date, password, tips } = req.body;
+router.put("/update", async (req, res) => {
+    const { idUser, mail, name, surname, dni, date, password } = req.body;
     const age = calculateAge(date);
-    db.query('UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, tips=? WHERE idUser=?', 
-        [mail, name, surname, dni, date, age, password, tips, idUser],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send("Error al actualizar cliente");
-            } else {
+    try {
+        let hashedPassword = null;
+        if (password) {
+            hashedPassword = await bcrypt.hash(password, 10);
+        }
+        db.query(
+            'UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, tips="cliente" WHERE idUser=?',
+            [mail, name, surname, dni, date, age, hashedPassword, idUser],
+            (err, result) => {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send("Error al actualizar cliente");
+                }
                 res.send("¡Cliente actualizado con ÉXITO!");
             }
-        }
-    );
+        );
+    } catch (error) {
+        console.error("Error al encriptar la contraseña:", error);
+        res.status(500).send("Error al actualizar cliente");
+    }
 });
 
 // Eliminar usuario
@@ -91,6 +100,21 @@ router.delete("/delete/:idUser", (req, res) => {
             }
         }
     );
+});
+
+// Leer un usuario por ID
+router.get("/customer/:idUser", (req, res) => {
+    const idUser = req.params.idUser;
+    db.query('SELECT * FROM customer WHERE idUser = ?', [idUser], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Error al obtener datos del cliente");
+        } else if (result.length === 0) {
+            res.status(404).send("Cliente no encontrado");
+        } else {
+            res.send(result[0]);
+        }
+    });
 });
 
 // Inicio de sesión
