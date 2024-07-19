@@ -12,7 +12,7 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
     if (err) {
-        console.error(err);
+        console.error("Error al conectar a la base de datos cine-aurora:", err);
         return;
     }
 });
@@ -37,16 +37,34 @@ router.post("/createTicket", (req, res) => {
         }
     });
 });
-// Leer todas las películas
+
+// Leer todas los tickets
 router.get("/allTicket", (req, res) => {
     db.query("SELECT * FROM ticket", (err, result) => {
         if (err) {
-            console.log(err);
+            console.error("Error al obtener todos los tickets:", err);
             res.status(500).send("Error al obtener datos");
         } else {
             res.send(result);
         }
     });
 });
+
+// Leer un ticket por el id del usuario
+router.get("/ticketUser/:idUser", (req, res) => {
+    const idUser = req.params.idUser;
+    db.query('SELECT * FROM ticket WHERE idUser = ?', [idUser], (err, result) => {
+        if (err) {
+            console.error("Error al obtener tickets del usuario:", err);
+            res.status(500).send("Error al obtener datos del usuario");
+        } else if (result.length === 0) {
+            res.status(404).send("No se encontraron tickets para este usuario");
+        } else {
+            res.send(result);
+        }
+    });
+});
+
+module.exports = router;
 
 module.exports = router;
