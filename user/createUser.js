@@ -63,24 +63,27 @@ router.get("/customer", (req, res) => {
 
 // Actualizar usuario
 router.put("/update", async (req, res) => {
-    const { idUser, mail, name, surname, dni, date, password } = req.body;
+    const { idUser, mail, name, surname, dni, date, password, tips } = req.body;
     const age = calculateAge(date);
     try {
         let hashedPassword = null;
         if (password) {
             hashedPassword = await bcrypt.hash(password, 10);
         }
-        db.query(
-            'UPDATE customer SET mail=?, name=?, surname=?, dni=?, date=?, age=?, password=?, tips="cliente" WHERE idUser=?',
-            [mail, name, surname, dni, date, age, hashedPassword, idUser],
-            (err, result) => {
-                if (err) {
-                    console.log(err);
-                    return res.status(500).send("Error al actualizar cliente");
-                }
-                res.send("¡Cliente actualizado con ÉXITO!");
+        const updateQuery = `
+            UPDATE customer 
+            SET mail=?, name=?, surname=?, dni=?, date=?, age=?, ${hashedPassword ? "password=?," : ""} tips=? 
+            WHERE idUser=?
+        `;
+        const queryParams = hashedPassword ? [mail, name, surname, dni, date, age, hashedPassword, tips, idUser] : [mail, name, surname, dni, date, age, tips, idUser];
+
+        db.query(updateQuery, queryParams, (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send("Error al actualizar cliente");
             }
-        );
+            res.send("¡Cliente actualizado con ÉXITO!");
+        });
     } catch (error) {
         console.error("Error al encriptar la contraseña:", error);
         res.status(500).send("Error al actualizar cliente");
@@ -90,16 +93,14 @@ router.put("/update", async (req, res) => {
 // Eliminar usuario
 router.delete("/delete/:idUser", (req, res) => {
     const idUser = req.params.idUser;
-    db.query('DELETE FROM customer WHERE idUser=?', [idUser],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send({ success: false, message: "Error al eliminar cliente" });
-            } else {
-                res.send({ success: true, message: "Cliente eliminado con éxito" });
-            }
+    db.query('DELETE FROM customer WHERE idUser=?', [idUser], (err, result) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send({ success: false, message: "Error al eliminar cliente" });
+        } else {
+            res.send({ success: true, message: "Cliente eliminado con éxito" });
         }
-    );
+    });
 });
 
 // Leer un usuario por ID
