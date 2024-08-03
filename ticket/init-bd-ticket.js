@@ -1,7 +1,6 @@
 const mysql = require("mysql");
 
 function initDatabase() {
-    // Conexión a la base de datos
     const db = mysql.createConnection({
         host: "localhost",
         user: "root",
@@ -9,14 +8,14 @@ function initDatabase() {
         database: "cine-aurora"
     });
 
-    // Conectar a la base de datos
     db.connect((err) => {
         if (err) {
             console.error("Error al conectar a la base de datos cine-aurora:", err);
             return;
         }
-        
-        // Creación de la tabla de ticket si no existe
+
+        console.log("Conectado a la base de datos cine-aurora");
+
         const createTableQuery = `
             CREATE TABLE IF NOT EXISTS ticket (
                 idTicket INT AUTO_INCREMENT PRIMARY KEY,
@@ -31,11 +30,11 @@ function initDatabase() {
             )
         `;
 
-        db.query(createTableQuery, (err, res) => {
+        db.query(createTableQuery, (err, result) => {
             if (err) {
                 console.error("Error al crear la tabla ticket:", err);
             } else {
-                console.log("Tabla ticket fue creada o ya existía.");
+                console.log("Tabla ticket creada o ya existía.");
             }
             db.end();
         });
