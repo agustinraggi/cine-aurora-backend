@@ -2,6 +2,12 @@ const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { authenticateToken } = require('../middleware');
+
+// Configuración de JWT
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRATION = process.env.JWT_EXPIRATION;
 
 // Conexión a la base de datos cine-aurora
 const db = mysql.createConnection({
@@ -119,7 +125,7 @@ router.get("/customer/:idUser", (req, res) => {
 });
 
 // Inicio de sesión
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
     const { mail, password } = req.body;
     db.query("SELECT * FROM customer WHERE mail = ?", [mail], async (err, results) => {
         if (err) {
@@ -134,8 +140,18 @@ router.post("/login", (req, res) => {
         if (!match) {
             return res.status(400).send("Correo o contraseña incorrectos");
         }
+
+        // Generar un token JWT
+        const token = jwt.sign({
+            id: user.idUser,
+            mail: user.mail,
+            name: user.name,
+            tips: user.tips
+        }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+
         res.send({
             success: true,
+            token,
             user: {
                 id: user.idUser,
                 name: user.name,
@@ -146,5 +162,9 @@ router.post("/login", (req, res) => {
     });
 });
 
+// Ruta para obtener información del usuario autenticado
+router.get('/tokenUser', authenticateToken, (req, res) => {
+    res.send(req.user);
+});
 
 module.exports = router;

@@ -19,28 +19,10 @@ router.post("/create_preference", async (req, res) => {
                     currency_id: "ARS",
                 },
             ],
-            payer: {
-                name: req.body.name,
-                surname: req.body.surname,
-                email: req.body.email,
-                phone: {
-                    area_code: req.body.area_code,
-                    number: req.body.phone_number,
-                },
-                identification: {
-                    type: req.body.identification_type,
-                    number: req.body.identification_number,
-                },
-                address: {
-                    street_name: req.body.street_name,
-                    street_number: req.body.street_number,
-                    zip_code: req.body.zip_code,
-                },
-            },
             back_urls: {
-                success: "http://localhost:3000/",
-                failure: "http://localhost:3000/",
-                pending: "http://localhost:3000/",
+                success: "http://localhost:3000/statusPay",
+                failure: "http://localhost:3000/statusPay",
+                pending: "http://localhost:3000/statusPay",
             },
             auto_return: "approved",
         };
