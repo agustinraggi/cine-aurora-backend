@@ -27,6 +27,7 @@ router.post("/createFilm", (req, res) => {
                 console.log(err);
                 res.status(500).send("Error al registrar película");
             } else {
+                console.log("¡Película registrada con ÉXITO!",{codeFilm},{nameFilm})
                 res.send("¡Película registrada con ÉXITO!");
             }
         }
@@ -53,6 +54,7 @@ router.delete("/deleteFilm/:idFilm", (req, res) => {
             console.log(err);
             res.status(500).send("Error al eliminar película");
         } else {
+            console.log("¡Película eliminada con ÉXITO!",{idFilm})
             res.send("¡Película eliminada con ÉXITO!");
         }
     });

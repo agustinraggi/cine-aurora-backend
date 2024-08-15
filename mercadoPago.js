@@ -20,9 +20,9 @@ router.post("/create_preference", async (req, res) => {
                 },
             ],
             back_urls: {
-                success: "http://localhost:3000/statusPay",
-                failure: "http://localhost:3000/statusPay",
-                pending: "http://localhost:3000/statusPay",
+                success: "http://localhost:3000/userActive",
+                failure: "http://localhost:3000/userActive",
+                pending: "http://localhost:3000/userActive",
             },
             auto_return: "approved",
         };

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
+const moment = require('moment-timezone');
 
 // Conexión a la base de datos cine-aurora
 const db = mysql.createConnection({
@@ -20,7 +21,9 @@ db.connect((err) => {
 // Registro de ticket
 router.post("/createTicket", (req, res) => {
     const { nameFilm, chair, finalPrice, voucher, idUser } = req.body;
-    const purchaseDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+    // Obtén la hora actual en la zona horaria deseada
+    const purchaseDate = moment().tz('America/New_York').format('YYYY-MM-DD HH:mm:ss');
 
     const chairString = JSON.stringify(chair);
 
@@ -32,13 +35,13 @@ router.post("/createTicket", (req, res) => {
             console.error("Error al registrar ticket:", err);
             res.status(500).send("Error al registrar ticket");
         } else {
-            console.log("¡Ticket registrado con éxito!");
+            console.log("¡Ticket registrado con éxito esta en estado en pendiente!",{idUser},{nameFilm});
             res.send("¡Ticket registrado con éxito!");
         }
     });
 });
 
-// Leer todas los tickets
+// Leer todos los tickets
 router.get("/allTicket", (req, res) => {
     db.query("SELECT * FROM ticket", (err, result) => {
         if (err) {
@@ -58,6 +61,7 @@ router.get("/ticketUser/:idUser", (req, res) => {
             console.error("Error al obtener tickets del usuario:", err);
             res.status(500).send("Error al obtener datos del usuario");
         } else if (result.length === 0) {
+            console.log("No se encontraron tickets para este usuario",{idUser})
             res.status(404).send("No se encontraron tickets para este usuario");
         } else {
             res.send(result);
@@ -65,6 +69,24 @@ router.get("/ticketUser/:idUser", (req, res) => {
     });
 });
 
-module.exports = router;
+// Actualizar el estado del ticket
+router.post("/updateTicketStatus", (req, res) => {
+    const { preference_id, status, nameFilm } = req.body;
+
+    if (status !== 'paid' && status !== 'pending') {
+        return res.status(400).send("Estado no válido.");
+    }
+
+    const updateQuery = 'UPDATE ticket SET status = ? WHERE voucher = ?';
+    db.query(updateQuery, [status, preference_id,nameFilm], (err, result) => {
+        if (err) {
+            console.error("Error al actualizar el estado del ticket:", err);
+            res.status(500).send("Error al actualizar el estado del ticket.");
+        } else {
+            console.log("El ticket fue pagado con Exito.",{status});
+            res.send("Estado del ticket actualizado con éxito.");
+        }
+    });
+});
 
 module.exports = router;

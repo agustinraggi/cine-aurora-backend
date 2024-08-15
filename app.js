@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const mysql = require("mysql");
 const dotenv = require("dotenv");
+const cron = require('node-cron');
 
 // Cargar variables de entorno
 dotenv.config();
@@ -46,6 +47,7 @@ db.connect((err) => {
         }
         console.log("Base de datos cine-aurora creada o ya existía.");
 
+        // Inicializar las bases de datos
         initDatabaseUser();
         initDatabaseFilm();
         initDatabaseTicket();
@@ -65,11 +67,13 @@ db.connect((err) => {
             }
             console.log("Conectado a la base de datos cine-aurora");
 
+            // Configurar las rutas
             app.use(userRoutes);
             app.use(filmRoutes);
             app.use(ticketRoutes);
             app.use(mercadoPagoRoutes);
 
+            // Iniciar el servidor
             const PORT = process.env.PORT || 3001;
             app.listen(PORT, () => {
                 console.log(`Servidor corriendo en el puerto ${PORT}`);

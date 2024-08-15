@@ -20,12 +20,12 @@ function initDatabase() {
             CREATE TABLE IF NOT EXISTS ticket (
                 idTicket INT AUTO_INCREMENT PRIMARY KEY,
                 nameFilm VARCHAR(50),
-                chair VARCHAR(50),
+                chair VARCHAR(255),
                 finalPrice DECIMAL(10, 2),
                 voucher VARCHAR(100),
                 idUser INT,
                 purchaseDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-                status VARCHAR(20) DEFAULT 'active',
+                status ENUM('pending', 'paid', 'canceled') DEFAULT 'pending',
                 FOREIGN KEY (idUser) REFERENCES customer(idUser)
             )
         `;

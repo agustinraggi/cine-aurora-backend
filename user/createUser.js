@@ -45,6 +45,7 @@ router.post("/create", async (req, res) => {
                     console.log(err);
                     res.status(500).send("Error al registrar cliente");
                 } else {
+                    console.log("¡Cliente registrado con ÉXITO!",{name},{surname})
                     res.send("¡Cliente registrado con ÉXITO!");
                 }
             }
@@ -56,7 +57,7 @@ router.post("/create", async (req, res) => {
 });
 
 // Leer todos los usuarios
-router.get("/customer", (req, res) => {
+router.get("/allCustomer", (req, res) => {
     db.query('SELECT * FROM customer', (err, result) => {
         if (err) {
             console.log(err);
@@ -88,6 +89,7 @@ router.put("/update", async (req, res) => {
                 console.log(err);
                 return res.status(500).send("Error al actualizar cliente");
             }
+            console.log("¡Cliente actualizado con ÉXITO!",{name},{surname})
             res.send("¡Cliente actualizado con ÉXITO!");
         });
     } catch (error) {
@@ -104,13 +106,14 @@ router.delete("/delete/:idUser", (req, res) => {
             console.log(err);
             res.status(500).send({ success: false, message: "Error al eliminar cliente" });
         } else {
+            console.log("Cliente eliminado con éxito",{idUser})
             res.send({ success: true, message: "Cliente eliminado con éxito" });
         }
     });
 });
 
 // Leer un usuario por ID
-router.get("/customer/:idUser", (req, res) => {
+router.get("/allCustomer/:idUser", (req, res) => {
     const idUser = req.params.idUser;
     db.query('SELECT * FROM customer WHERE idUser = ?', [idUser], (err, result) => {
         if (err) {
