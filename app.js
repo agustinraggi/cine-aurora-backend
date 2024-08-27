@@ -15,6 +15,9 @@ const initDatabaseFilm = require("./film/init-bd-film");
 const ticketRoutes = require("./ticket/createTicket");
 const initDatabaseTicket = require("./ticket/init-bd-ticket");
 
+const movieTheaterRoutes = require ("./movieTheater/createMovieTheater")
+const initMovieTheater = require("./movieTheater/init-bd-movieTheater")
+
 const mercadoPagoRoutes = require("./mercadoPago");
 
 const app = express();
@@ -51,6 +54,7 @@ db.connect((err) => {
         initDatabaseUser();
         initDatabaseFilm();
         initDatabaseTicket();
+        initMovieTheater();
 
         const dbCineAurora = mysql.createConnection({
             host: process.env.DB_HOST,
@@ -71,6 +75,7 @@ db.connect((err) => {
             app.use(userRoutes);
             app.use(filmRoutes);
             app.use(ticketRoutes);
+            app.use(movieTheaterRoutes)
             app.use(mercadoPagoRoutes);
 
             // Iniciar el servidor
