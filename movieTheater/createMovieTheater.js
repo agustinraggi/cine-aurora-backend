@@ -34,14 +34,15 @@ router.post("/createMovieTheater", (req, res) => {
     );
 });
 
-// Leer todas las funciones
-router.get("/allMovieTheater", (req, res) => {
-    db.query("SELECT * FROM movieTheater", (err, result) => {
+// Obtener funciones por código de película
+router.get("/movieFunctions/:codeFilm", (req, res) => {
+    const codeFilm = req.params.codeFilm;
+    db.query("SELECT date, time, typeOfFunction, language FROM movieTheater WHERE codeFilm = ?", [codeFilm], (err, results) => {
         if (err) {
             console.log(err);
-            res.status(500).send("Error al obtener datos");
+            res.status(500).send("Error al obtener las funciones de la película");
         } else {
-            res.send(result);
+            res.json(results);
         }
     });
 });

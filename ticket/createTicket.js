@@ -20,26 +20,27 @@ db.connect((err) => {
 
 // Registro de ticket
 router.post("/createTicket", (req, res) => {
-    const { nameFilm, chair, finalPrice, voucher, idUser } = req.body;
+    const { nameFilm, chair, finalPrice, date, time, typeOfFunction, language, voucher, idUser } = req.body;
 
     // Obtén la hora actual en la zona horaria deseada
     const purchaseDate = moment().tz('America/New_York').format('YYYY-MM-DD HH:mm:ss');
 
     const chairString = JSON.stringify(chair);
 
-    const insertQuery = 'INSERT INTO ticket (nameFilm, chair, finalPrice, voucher, purchaseDate, idUser) VALUES (?, ?, ?, ?, ?, ?)';
-    const values = [nameFilm, chairString, finalPrice, voucher, purchaseDate, idUser];
+    const insertQuery = 'INSERT INTO ticket (nameFilm, chair, finalPrice, date, time, typeOfFunction, language, voucher, purchaseDate, idUser) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    const values = [nameFilm, chairString, finalPrice, date, time, typeOfFunction, language, voucher, purchaseDate, idUser];
 
     db.query(insertQuery, values, (err, result) => {
         if (err) {
             console.error("Error al registrar ticket:", err);
             res.status(500).send("Error al registrar ticket");
         } else {
-            console.log("¡Ticket registrado con éxito esta en estado en pendiente!",{idUser},{nameFilm});
+            console.log("¡Ticket registrado con éxito esta en estado en pendiente!", {idUser}, {nameFilm});
             res.send("¡Ticket registrado con éxito!");
         }
     });
 });
+
 
 // Leer todos los tickets
 router.get("/allTicket", (req, res) => {
@@ -56,13 +57,13 @@ router.get("/allTicket", (req, res) => {
 // Leer un ticket por el id del usuario
 router.get("/ticketUser/:idUser", (req, res) => {
     const idUser = req.params.idUser;
-    db.query('SELECT * FROM ticket WHERE idUser = ?', [idUser], (err, result) => {
+    db.query('SELECT * FROM ticket WHERE idUser = ? AND status = ?', [idUser, 'paid'], (err, result) => {
         if (err) {
             console.error("Error al obtener tickets del usuario:", err);
             res.status(500).send("Error al obtener datos del usuario");
         } else if (result.length === 0) {
-            console.log("No se encontraron tickets para este usuario",{idUser})
-            res.status(404).send("No se encontraron tickets para este usuario");
+            console.log("No se encontraron tickets pagos para este usuario", {idUser})
+            res.status(404).send("No se encontraron tickets pagos para este usuario");
         } else {
             res.send(result);
         }
