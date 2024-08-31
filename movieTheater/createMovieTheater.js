@@ -46,6 +46,29 @@ router.get("/movieFunctions/:codeFilm", (req, res) => {
         }
     });
 });
+// Obtener precio según parámetros
+router.get("/getPrice", (req, res) => {
+    const { codeFilm, date, time, typeOfFunction, language } = req.query;
+
+    const query = `
+        SELECT price 
+        FROM movieTheater 
+        WHERE codeFilm = ? AND date = ? AND time = ? AND typeOfFunction = ? AND language = ?
+    `;
+
+    db.query(query, [codeFilm, date, time, typeOfFunction, language], (err, results) => {
+        if (err) {
+            console.log(err);
+            res.status(500).send("Error al obtener el precio");
+        } else {
+            if (results.length > 0) {
+                res.json({ price: results[0].price });
+            } else {
+                res.status(404).send("Precio no encontrado");
+            }
+        }
+    });
+});
 
 // Eliminar funcion por ID
 router.delete("/deleteMovieTheater/:idMovieTheater", (req, res) => {
