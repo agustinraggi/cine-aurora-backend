@@ -25,7 +25,8 @@ function initDatabase() {
                 date VARCHAR(50),
                 time VARCHAR(50),
                 typeOfFunction VARCHAR(50),
-                language VARCHAR(50)
+                language VARCHAR(50),
+                price INT
             )
         `;
         db.query(createTableQuery, (err, res) => {

@@ -19,9 +19,9 @@ db.connect((err) => {
 
 // Registro de funcion
 router.post("/createMovieTheater", (req, res) => {
-    const {nameFilm, codeFilm, date, time, typeOfFunction, language } = req.body;
-    db.query('INSERT INTO movieTheater (nameFilm, codeFilm, date, time, typeOfFunction, language) VALUES (?, ?, ?, ?, ?, ?)', 
-        [nameFilm, codeFilm, date, time, typeOfFunction, language ],
+    const {nameFilm, codeFilm, date, time, typeOfFunction, language, price } = req.body;
+    db.query('INSERT INTO movieTheater (nameFilm, codeFilm, date, time, typeOfFunction, language, price) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+        [nameFilm, codeFilm, date, time, typeOfFunction, language, price ],
         (err, result) => {
             if (err) {
                 console.log(err);

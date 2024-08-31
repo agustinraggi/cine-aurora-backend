@@ -28,7 +28,7 @@ function initDatabase() {
                 mail VARCHAR(50) UNIQUE NOT NULL,
                 name VARCHAR(50),
                 surname VARCHAR(50),
-                dni INT,
+                dni INT UNIQUE NOT NULL,
                 date VARCHAR(25),
                 age INT,
                 password VARCHAR(255) NOT NULL,
@@ -46,9 +46,10 @@ function initDatabase() {
             // Leer las variables de entorno para el correo y la contraseña del administrador
             const adminEmail = process.env.ADMIN_EMAIL;
             const adminPasswordPlain = process.env.ADMIN_PASSWORD;
+            const adminDniPlain = process.env.ADMIN_DNI;
 
-            if (!adminEmail || !adminPasswordPlain) {
-                console.error("ADMIN_EMAIL o ADMIN_PASSWORD no están definidos en el archivo .env");
+            if (!adminEmail || !adminPasswordPlain || !adminDniPlain) {
+                console.error("ADMIN_EMAIL, ADMIN_PASSWORD o ADMIN_DNI no están definidos en el archivo .env");
                 db.end();
                 return;
             }
@@ -62,24 +63,28 @@ function initDatabase() {
                     db.end();
                     return;
                 }
-
+            
                 if (results.length === 0) {
                     // Crear usuario admin si no existe
                     const adminPassword = bcrypt.hashSync(adminPasswordPlain, 10);
                     const insertAdminQuery = `
                         INSERT INTO customer (mail, name, surname, dni, date, age, password, tips) 
-                        VALUES (?, 'Admin', 'User', NULL, NULL, NULL, ?, 'admin')
+                        VALUES (?, 'Admin', 'User', ?, NULL, NULL, ?, 'admin')
                     `;
-                    db.query(insertAdminQuery, [adminEmail, adminPassword], (err, result) => {
+                    db.query(insertAdminQuery, [adminEmail, adminDniPlain, adminPassword], (err, result) => {
                         if (err) {
                             console.error("Error al crear el usuario administrador:", err);
                         } else {
-                            console.log("Usuario administrador creado.",{adminEmail});
+                            console.log("Usuario administrador creado.", { adminEmail },
+                                "su contraseña es: ", adminPasswordPlain
+                            );
                         }
                         db.end();
                     });
                 } else {
-                    console.log("Usuario administrador ya existe.");
+                    console.log("Usuario administrador ya existe.", { adminEmail },
+                        "su contraseña es: ", adminPasswordPlain
+                    );
                     db.end();
                 }
             });

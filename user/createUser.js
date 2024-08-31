@@ -42,10 +42,11 @@ router.post("/create", async (req, res) => {
             [mail, name, surname, dni, date, age, hashedPassword, tips],
             (err, result) => {
                 if (err) {
+                    console.log("aca estoyu")
                     console.log(err);
                     res.status(500).send("Error al registrar cliente");
                 } else {
-                    console.log("¡Cliente registrado con ÉXITO!",{name},{surname})
+                    console.log("¡Cliente registrado con ÉXITO!", {name}, {surname});
                     res.send("¡Cliente registrado con ÉXITO!");
                 }
             }
@@ -56,15 +57,32 @@ router.post("/create", async (req, res) => {
     }
 });
 
-// Leer todos los usuarios
+// Leer todos los usuarios con paginación
 router.get("/allCustomer", (req, res) => {
-    db.query('SELECT * FROM customer', (err, result) => {
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 5; 
+    const offset = (page - 1) * limit; 
+
+    db.query('SELECT COUNT(*) AS total FROM customer', (err, countResult) => {
         if (err) {
             console.log(err);
-            res.status(500).send("Error al obtener datos");
-        } else {
-            res.send(result);
+            return res.status(500).send("Error al obtener el número total de usuarios");
         }
+        const total = countResult[0].total;
+        const totalPages = Math.ceil(total / limit);
+
+        db.query('SELECT * FROM customer LIMIT ? OFFSET ?', [limit, offset], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send("Error al obtener datos");
+            }
+            res.send({
+                total,
+                totalPages,
+                page,
+                users: result
+            });
+        });
     });
 });
 
@@ -89,7 +107,7 @@ router.put("/update", async (req, res) => {
                 console.log(err);
                 return res.status(500).send("Error al actualizar cliente");
             }
-            console.log("¡Cliente actualizado con ÉXITO!",{name},{surname})
+            console.log("¡Cliente actualizado con ÉXITO!", {name}, {surname});
             res.send("¡Cliente actualizado con ÉXITO!");
         });
     } catch (error) {
@@ -106,7 +124,7 @@ router.delete("/delete/:idUser", (req, res) => {
             console.log(err);
             res.status(500).send({ success: false, message: "Error al eliminar cliente" });
         } else {
-            console.log("Cliente eliminado con éxito",{idUser})
+            console.log("Cliente eliminado con éxito", {idUser});
             res.send({ success: true, message: "Cliente eliminado con éxito" });
         }
     });
@@ -129,25 +147,29 @@ router.get("/allCustomer/:idUser", (req, res) => {
 
 // Inicio de sesión
 router.post("/login", async (req, res) => {
-    const { mail, password } = req.body;
-    db.query("SELECT * FROM customer WHERE mail = ?", [mail], async (err, results) => {
+    const { mailOrDni, password } = req.body;
+    
+    // Intentar buscar por correo electrónico o DNI
+    db.query("SELECT * FROM customer WHERE mail = ? OR dni = ?", [mailOrDni, mailOrDni], async (err, results) => {
         if (err) {
             console.log(err);
             return res.status(500).send("Error en el servidor");
         }
         if (results.length === 0) {
-            return res.status(400).send("Correo o contraseña incorrectos");
+            return res.status(400).send("Correo, DNI o contraseña incorrectos");
         }
+
         const user = results[0];
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            return res.status(400).send("Correo o contraseña incorrectos");
+            return res.status(400).send("Correo, DNI o contraseña incorrectos");
         }
 
         // Generar un token JWT
         const token = jwt.sign({
             id: user.idUser,
             mail: user.mail,
+            dni: user.dni,
             name: user.name,
             tips: user.tips
         }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
@@ -159,6 +181,7 @@ router.post("/login", async (req, res) => {
                 id: user.idUser,
                 name: user.name,
                 email: user.mail,
+                dni: user.dni,
                 tips: user.tips
             }
         });
