@@ -58,7 +58,7 @@ router.post("/create", async (req, res) => {
 });
 
 // Leer todos los usuarios con paginación
-router.get("/allCustomer", (req, res) => {
+router.get("/allCustomer", authenticateToken, (req, res) => {
     const page = parseInt(req.query.page) || 1; 
     const limit = parseInt(req.query.limit) || 5; 
     const offset = (page - 1) * limit; 
@@ -87,7 +87,7 @@ router.get("/allCustomer", (req, res) => {
 });
 
 // Actualizar usuario
-router.put("/update", async (req, res) => {
+router.put("/update",authenticateToken, async (req, res) => {
     const { idUser, mail, name, surname, dni, date, password, tips } = req.body;
     const age = calculateAge(date);
     try {
@@ -117,7 +117,7 @@ router.put("/update", async (req, res) => {
 });
 
 // Eliminar usuario
-router.delete("/delete/:idUser", (req, res) => {
+router.delete("/delete/:idUser",authenticateToken, (req, res) => {
     const idUser = req.params.idUser;
     db.query('DELETE FROM customer WHERE idUser=?', [idUser], (err, result) => {
         if (err) {
@@ -131,7 +131,7 @@ router.delete("/delete/:idUser", (req, res) => {
 });
 
 // Leer un usuario por ID
-router.get("/allCustomer/:idUser", (req, res) => {
+router.get("/allCustomer/:idUser",authenticateToken, (req, res) => {
     const idUser = req.params.idUser;
     db.query('SELECT * FROM customer WHERE idUser = ?', [idUser], (err, result) => {
         if (err) {

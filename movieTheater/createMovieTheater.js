@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mysql = require("mysql");
+const { authenticateToken } = require('../middleware');
 
 // Conexión a la base de datos cine-aurora
 const db = mysql.createConnection({
@@ -18,7 +19,7 @@ db.connect((err) => {
 });
 
 // Registro de funcion
-router.post("/createMovieTheater", (req, res) => {
+router.post("/createMovieTheater", authenticateToken, (req, res) => {
     const {nameFilm, codeFilm, date, time, typeOfFunction, language, price } = req.body;
     db.query('INSERT INTO movieTheater (nameFilm, codeFilm, date, time, typeOfFunction, language, price) VALUES (?, ?, ?, ?, ?, ?, ?)', 
         [nameFilm, codeFilm, date, time, typeOfFunction, language, price ],
@@ -35,7 +36,7 @@ router.post("/createMovieTheater", (req, res) => {
 });
 
 // Obtener funciones por código de película
-router.get("/movieFunctions/:codeFilm", (req, res) => {
+router.get("/movieFunctions/:codeFilm", authenticateToken, (req, res) => {
     const codeFilm = req.params.codeFilm;
     db.query("SELECT date, time, typeOfFunction, language FROM movieTheater WHERE codeFilm = ?", [codeFilm], (err, results) => {
         if (err) {
@@ -47,7 +48,7 @@ router.get("/movieFunctions/:codeFilm", (req, res) => {
     });
 });
 // Obtener precio según parámetros
-router.get("/getPrice", (req, res) => {
+router.get("/getPrice", authenticateToken, (req, res) => {
     const { codeFilm, date, time, typeOfFunction, language } = req.query;
 
     const query = `
@@ -71,7 +72,7 @@ router.get("/getPrice", (req, res) => {
 });
 
 // Eliminar funcion por ID
-router.delete("/deleteMovieTheater/:idMovieTheater", (req, res) => {
+router.delete("/deleteMovieTheater/:idMovieTheater", authenticateToken, (req, res) => {
     const idMovieTheater = req.params.idMovieTheater;
     db.query("DELETE FROM movieTheater WHERE idMovieTheater = ?", [idMovieTheater], (err, result) => {
         if (err) {
@@ -82,6 +83,11 @@ router.delete("/deleteMovieTheater/:idMovieTheater", (req, res) => {
             res.send("¡Funcion eliminada con ÉXITO!");
         }
     });
+});
+
+// Ruta para obtener información del usuario autenticado
+router.get('/tokenUser', authenticateToken, (req, res) => {
+    res.send(req.user);
 });
 
 module.exports = router;
