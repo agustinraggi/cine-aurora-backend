@@ -20,6 +20,6 @@
     "mysql": "^2.18.1",
     "ngrok": "^5.0.0-beta.2",
     "node-cron": "^3.0.3",
-    "nodemailer": "^6.9.14"
+    "nodemailer": "^6.9.15"
   }
 }

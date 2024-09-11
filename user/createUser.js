@@ -3,6 +3,7 @@ const router = express.Router();
 const mysql = require("mysql");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const { authenticateToken } = require('../middleware');
 
 // Configuración de JWT
@@ -187,6 +188,79 @@ router.post("/login", async (req, res) => {
         });
     });
 });
+
+
+// Configuración de Nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        // Deshabilita la verificación del certificado
+        rejectUnauthorized: false 
+    }
+});
+
+// Ruta para solicitar recuperación de contraseña
+router.post('/recover-password', (req, res) => {
+    const { email } = req.body;
+    
+    // Verificar si el usuario existe
+    db.query('SELECT * FROM customer WHERE mail = ?', [email], (err, result) => {
+        if (err || result.length === 0) {
+            return res.status(400).send({ message: 'Usuario no encontrado' });
+        }
+        
+        const user = result[0];
+
+        // Generar token de recuperación de contraseña
+        const token = jwt.sign({ id: user.idUser, email: user.mail }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+
+        // Enlace de recuperación
+        const link = `http://localhost:3000/reset-password/${token}`;
+
+        // Enviar correo
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Recuperación de Contraseña',
+            text: `Haz clic en el siguiente enlace para restablecer tu contraseña: ${link}`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log(error);
+                return res.status(500).send({ message: 'Error al enviar el correo' });
+            }
+            res.send({ message: 'Correo de recuperación enviado con éxito' });
+        });
+    });
+});
+
+// Ruta para restablecer la contraseña
+router.post('/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body;
+    try {
+        // Verificar token
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Actualizar la contraseña en la base de datos
+        db.query('UPDATE customer SET password = ? WHERE idUser = ?', [hashedPassword, decoded.id], (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send({ message: 'Error al actualizar la contraseña' });
+            }
+            res.send({ message: 'Contraseña restablecida con éxito' });
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(400).send({ message: 'Enlace de restablecimiento inválido o expirado' });
+    }
+});
+
 
 // Ruta para obtener información del usuario autenticado
 router.get('/tokenUser', authenticateToken, (req, res) => {
