@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "type": "module",
   "scripts": {
-    "start": "node ./user/init-bd-user.js && node ./film/init-bd-film.js && node ./ticket/init-bd-ticket.js && node app.js",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -20,6 +21,10 @@
     "mysql": "^2.18.1",
     "ngrok": "^5.0.0-beta.2",
     "node-cron": "^3.0.3",
-    "nodemailer": "^6.9.15"
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.4"
   }
 }
