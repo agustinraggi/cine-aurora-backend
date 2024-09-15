@@ -3,10 +3,15 @@ import { AppDataSource } from "../../app";
 
 const express = require("express");
 const router = express.Router();
+<<<<<<< Updated upstream:customer/createUser.js
 // const mysql = require("mysql");
+=======
+>>>>>>> Stashed changes:user/createUser.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const { getRepository } = require("typeorm");
+const Customer = require("../entity/customer/customer");
 const { authenticateToken } = require('../middleware');
 const { CustomerController } = require("./controller/customer.controller");
 repository = AppDataSource.getRepository(Customer)
@@ -14,6 +19,7 @@ repository = AppDataSource.getRepository(Customer)
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRATION = process.env.JWT_EXPIRATION;
 
+<<<<<<< Updated upstream:customer/createUser.js
 // Conexión a la base de datos cine-aurora
 // const db = mysql.createConnection({
 //     host: process.env.DB_HOST,
@@ -29,6 +35,8 @@ db.connect((err) => {
     }
 });
 
+=======
+>>>>>>> Stashed changes:user/createUser.js
 // Función para calcular la edad
 const calculateAge = (birthdate) => {
     const birthDate = new Date(birthdate);
@@ -37,25 +45,37 @@ const calculateAge = (birthdate) => {
     return Math.abs(ageDate.getUTCFullYear() - 1970);
 };
 
+// Configuración de Nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false 
+    }
+});
+
 // Registro de usuario
 router.post("/create", async (req, res) => {
     const { mail, name, surname, dni, date, password, tips = 'cliente' } = req.body;
     const age = calculateAge(date);
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        db.query('INSERT INTO customer (mail, name, surname, dni, date, age, password, tips) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-            [mail, name, surname, dni, date, age, hashedPassword, tips],
-            (err, result) => {
-                if (err) {
-                    console.log("aca estoyu")
-                    console.log(err);
-                    res.status(500).send("Error al registrar cliente");
-                } else {
-                    console.log("¡Cliente registrado con ÉXITO!", {name}, {surname});
-                    res.send("¡Cliente registrado con ÉXITO!");
-                }
-            }
-        );
+        const customerRepository = getRepository(Customer);
+        const newCustomer = customerRepository.create({
+            mail,
+            name,
+            surname,
+            dni,
+            date,
+            age,
+            password: hashedPassword,
+            tips
+        });
+        await customerRepository.save(newCustomer);
+        res.send("¡Cliente registrado con ÉXITO!");
     } catch (error) {
         console.error("Error al encriptar la contraseña:", error);
         res.status(500).send("Error al registrar cliente");
@@ -63,58 +83,59 @@ router.post("/create", async (req, res) => {
 });
 
 // Leer todos los usuarios con paginación
-router.get("/allCustomer", authenticateToken, (req, res) => {
+router.get("/allCustomer", async (req, res) => {
     const page = parseInt(req.query.page) || 1; 
     const limit = parseInt(req.query.limit) || 5; 
     const offset = (page - 1) * limit; 
 
-    db.query('SELECT COUNT(*) AS total FROM customer', (err, countResult) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).send("Error al obtener el número total de usuarios");
-        }
-        const total = countResult[0].total;
+    const customerRepository = getRepository(Customer);
+
+    try {
+        const [customers, total] = await customerRepository.createQueryBuilder("customer")
+            .skip(offset)
+            .take(limit)
+            .getManyAndCount();
+
         const totalPages = Math.ceil(total / limit);
 
-        db.query('SELECT * FROM customer LIMIT ? OFFSET ?', [limit, offset], (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).send("Error al obtener datos");
-            }
-            res.send({
-                total,
-                totalPages,
-                page,
-                users: result
-            });
+        res.send({
+            total,
+            totalPages,
+            page,
+            users: customers
         });
-    });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al obtener datos");
+    }
 });
 
 // Actualizar usuario
-router.put("/update",authenticateToken, async (req, res) => {
+router.put("/update", authenticateToken, async (req, res) => {
     const { idUser, mail, name, surname, dni, date, password, tips } = req.body;
     const age = calculateAge(date);
     try {
-        let hashedPassword = null;
-        if (password) {
-            hashedPassword = await bcrypt.hash(password, 10);
-        }
-        const updateQuery = `
-            UPDATE customer 
-            SET mail=?, name=?, surname=?, dni=?, date=?, age=?, ${hashedPassword ? "password=?," : ""} tips=? 
-            WHERE idUser=?
-        `;
-        const queryParams = hashedPassword ? [mail, name, surname, dni, date, age, hashedPassword, tips, idUser] : [mail, name, surname, dni, date, age, tips, idUser];
+        const customerRepository = getRepository(Customer);
+        const customer = await customerRepository.findOne(idUser);
 
-        db.query(updateQuery, queryParams, (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).send("Error al actualizar cliente");
-            }
-            console.log("¡Cliente actualizado con ÉXITO!", {name}, {surname});
-            res.send("¡Cliente actualizado con ÉXITO!");
-        });
+        if (!customer) {
+            return res.status(404).send("Cliente no encontrado");
+        }
+
+        if (password) {
+            customer.password = await bcrypt.hash(password, 10);
+        }
+
+        customer.mail = mail;
+        customer.name = name;
+        customer.surname = surname;
+        customer.dni = dni;
+        customer.date = date;
+        customer.age = age;
+        customer.tips = tips;
+
+        await customerRepository.save(customer);
+        res.send("¡Cliente actualizado con ÉXITO!");
     } catch (error) {
         console.error("Error al encriptar la contraseña:", error);
         res.status(500).send("Error al actualizar cliente");
@@ -122,32 +143,39 @@ router.put("/update",authenticateToken, async (req, res) => {
 });
 
 // Eliminar usuario
-router.delete("/delete/:idUser",authenticateToken, (req, res) => {
+router.delete("/delete/:idUser", authenticateToken, async (req, res) => {
     const idUser = req.params.idUser;
-    db.query('DELETE FROM customer WHERE idUser=?', [idUser], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send({ success: false, message: "Error al eliminar cliente" });
-        } else {
-            console.log("Cliente eliminado con éxito", {idUser});
-            res.send({ success: true, message: "Cliente eliminado con éxito" });
+    try {
+        const customerRepository = getRepository(Customer);
+        const result = await customerRepository.delete(idUser);
+
+        if (result.affected === 0) {
+            return res.status(404).send("Cliente no encontrado");
         }
-    });
+
+        res.send({ success: true, message: "Cliente eliminado con éxito" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ success: false, message: "Error al eliminar cliente" });
+    }
 });
 
 // Leer un usuario por ID
-router.get("/allCustomer/:idUser",authenticateToken, (req, res) => {
+router.get("/allCustomer/:idUser", authenticateToken, async (req, res) => {
     const idUser = req.params.idUser;
-    db.query('SELECT * FROM customer WHERE idUser = ?', [idUser], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Error al obtener datos del cliente");
-        } else if (result.length === 0) {
-            res.status(404).send("Cliente no encontrado");
-        } else {
-            res.send(result[0]);
+    try {
+        const customerRepository = getRepository(Customer);
+        const customer = await customerRepository.findOne(idUser);
+
+        if (!customer) {
+            return res.status(404).send("Cliente no encontrado");
         }
-    });
+
+        res.send(customer);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al obtener datos del cliente");
+    }
 });
 
 //nuevo
@@ -165,17 +193,16 @@ router.get("/:idUser", (req, res) => {
 router.post("/login", async (req, res) => {
     const { mailOrDni, password } = req.body;
     
-    // Intentar buscar por correo electrónico o DNI
-    db.query("SELECT * FROM customer WHERE mail = ? OR dni = ?", [mailOrDni, mailOrDni], async (err, results) => {
-        if (err) {
-            console.log(err);
-            return res.status(500).send("Error en el servidor");
-        }
-        if (results.length === 0) {
+    try {
+        const customerRepository = getRepository(Customer);
+        const user = await customerRepository.createQueryBuilder("customer")
+            .where("customer.mail = :mailOrDni OR customer.dni = :mailOrDni", { mailOrDni })
+            .getOne();
+
+        if (!user) {
             return res.status(400).send("Correo, DNI o contraseña incorrectos");
         }
 
-        const user = results[0];
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
             return res.status(400).send("Correo, DNI o contraseña incorrectos");
@@ -201,34 +228,23 @@ router.post("/login", async (req, res) => {
                 tips: user.tips
             }
         });
-    });
-});
-
-
-// Configuración de Nodemailer
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        // Deshabilita la verificación del certificado
-        rejectUnauthorized: false 
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error en el servidor");
     }
 });
 
 // Ruta para solicitar recuperación de contraseña
-router.post('/recover-password', (req, res) => {
+router.post('/recover-password', async (req, res) => {
     const { email } = req.body;
     
-    // Verificar si el usuario existe
-    db.query('SELECT * FROM customer WHERE mail = ?', [email], (err, result) => {
-        if (err || result.length === 0) {
+    try {
+        const customerRepository = getRepository(Customer);
+        const user = await customerRepository.findOne({ mail: email });
+
+        if (!user) {
             return res.status(400).send({ message: 'Usuario no encontrado' });
         }
-        
-        const user = result[0];
 
         // Generar token de recuperación de contraseña
         const token = jwt.sign({ id: user.idUser, email: user.mail }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
@@ -251,7 +267,10 @@ router.post('/recover-password', (req, res) => {
             }
             res.send({ message: 'Correo de recuperación enviado con éxito' });
         });
-    });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: 'Error al procesar la solicitud' });
+    }
 });
 
 // Ruta para restablecer la contraseña
@@ -263,19 +282,15 @@ router.post('/reset-password', async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Actualizar la contraseña en la base de datos
-        db.query('UPDATE customer SET password = ? WHERE idUser = ?', [hashedPassword, decoded.id], (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).send({ message: 'Error al actualizar la contraseña' });
-            }
-            res.send({ message: 'Contraseña restablecida con éxito' });
-        });
+        const customerRepository = getRepository(Customer);
+        await customerRepository.update(decoded.id, { password: hashedPassword });
+
+        res.send({ message: 'Contraseña restablecida con éxito' });
     } catch (error) {
         console.error(error);
         res.status(400).send({ message: 'Enlace de restablecimiento inválido o expirado' });
     }
 });
-
 
 // Ruta para obtener información del usuario autenticado
 router.get('/tokenUser', authenticateToken, (req, res) => {

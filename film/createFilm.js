@@ -1,9 +1,10 @@
 const express = require("express");
-const router = express.Router();
-const mysql = require("mysql");
 const { authenticateToken } = require('../middleware');
 const axios = require('axios');
+const { getRepository } = require("typeorm");
+const Film = require("../entity/film/film");
 
+<<<<<<< Updated upstream
 // Conexión a la base de datos cine-aurora
 // const db = mysql.createConnection({
 //     host: process.env.DB_HOST,
@@ -18,46 +19,45 @@ db.connect((err) => {
         return;
     }
 });
+=======
+const router = express.Router();
+>>>>>>> Stashed changes
 
 // Leer todas las películas
 router.get("/allFilm", async (req, res) => {
     try {
-        db.query("SELECT * FROM film", async (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send("Error al obtener datos");
-            } else {
-                const apiKey = process.env.TMDB_API_KEY;
-                const moviePosters = await Promise.all(
-                    result.map(async (dbMovie) => {
-                        try {
-                            const movieResponse = await axios.get(`https://api.themoviedb.org/3/movie/${dbMovie.codeFilm}`, {
-                                params: {
-                                    api_key: apiKey,
-                                    language: "es-MX"
-                                }
-                            });
-                            const movieData = movieResponse.data;
-                            return {
-                                ...dbMovie,
-                                posterPath: movieData.poster_path,
-                                id: movieData.id,
-                                nameFilm: movieData.title 
-                            };
-                        } catch (error) {
-                            console.error("Error fetching movie data:", error);
-                            return {
-                                ...dbMovie,
-                                posterPath: null,
-                                id: null,
-                                nameFilm: dbMovie.nameFilm
-                            };
+        const filmRepository = getRepository(Film);
+        const films = await filmRepository.find();
+
+        const apiKey = process.env.TMDB_API_KEY;
+        const moviePosters = await Promise.all(
+            films.map(async (dbMovie) => {
+                try {
+                    const movieResponse = await axios.get(`https://api.themoviedb.org/3/movie/${dbMovie.codeFilm}`, {
+                        params: {
+                            api_key: apiKey,
+                            language: "es-MX"
                         }
-                    })
-                );
-                res.send(moviePosters.filter(movie => movie.posterPath !== null));
-            }
-        });
+                    });
+                    const movieData = movieResponse.data;
+                    return {
+                        ...dbMovie,
+                        posterPath: movieData.poster_path,
+                        id: movieData.id,
+                        nameFilm: movieData.title 
+                    };
+                } catch (error) {
+                    console.error("Error fetching movie data:", error);
+                    return {
+                        ...dbMovie,
+                        posterPath: null,
+                        id: null,
+                        nameFilm: dbMovie.nameFilm
+                    };
+                }
+            })
+        );
+        res.send(moviePosters.filter(movie => movie.posterPath !== null));
     } catch (error) {
         console.error("Error fetching data:", error);
         res.status(500).send("Error fetching data");
@@ -65,34 +65,30 @@ router.get("/allFilm", async (req, res) => {
 });
 
 // Registro de película
-router.post("/createFilm", authenticateToken, (req, res) => {
+router.post("/createFilm", authenticateToken, async (req, res) => {
     const { codeFilm, nameFilm } = req.body;
-    db.query('INSERT INTO film (codeFilm, nameFilm) VALUES (?, ?)', 
-        [codeFilm, nameFilm],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send("Error al registrar película");
-            } else {
-                console.log("¡Película registrada con ÉXITO!", {codeFilm}, {nameFilm});
-                res.send("¡Película registrada con ÉXITO!");
-            }
-        }
-    );
+    try {
+        const filmRepository = getRepository(Film);
+        const newFilm = filmRepository.create({ codeFilm, nameFilm });
+        await filmRepository.save(newFilm);
+        res.send("¡Película registrada con ÉXITO!");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al registrar película");
+    }
 });
 
 // Eliminar película por ID
-router.delete("/deleteFilm/:idFilm", authenticateToken, (req, res) => {
-    const idFilm = req.params.idFilm;
-    db.query("DELETE FROM film WHERE idFilm = ?", [idFilm], (err, result) => {
-        if (err) {
-            console.log(err);
-            res.status(500).send("Error al eliminar película");
-        } else {
-            console.log("¡Película eliminada con ÉXITO!", {idFilm});
-            res.send("¡Película eliminada con ÉXITO!");
-        }
-    });
+router.delete("/deleteFilm/:idFilm", authenticateToken, async (req, res) => {
+    const idFilm = parseInt(req.params.idFilm);
+    try {
+        const filmRepository = getRepository(Film);
+        await filmRepository.delete(idFilm);
+        res.send("¡Película eliminada con ÉXITO!");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error al eliminar película");
+    }
 });
 
 // Obtener detalles de la película desde TMDB
@@ -101,7 +97,6 @@ router.get("/movie/:codeFilm", async (req, res) => {
     const apiKey = process.env.TMDB_API_KEY;
 
     try {
-        // Realizar la llamada a TMDB desde el backend
         const response = await axios.get(`https://api.themoviedb.org/3/movie/${codeFilm}?api_key=${apiKey}&language=es-MX`);
         res.send(response.data);
     } catch (error) {
@@ -115,14 +110,9 @@ router.get("/film/:codeFilm", authenticateToken, async (req, res) => {
     const { codeFilm } = req.params;
 
     try {
-        db.query("SELECT * FROM movieFunctions WHERE codeFilm = ?", [codeFilm], (err, result) => {
-            if (err) {
-                console.log(err);
-                res.status(500).send("Error al obtener funciones de la película");
-            } else {
-                res.send(result);
-            }
-        });
+        const filmRepository = getRepository(Film);
+        const filmFunctions = await filmRepository.query("SELECT * FROM movieFunctions WHERE codeFilm = ?", [codeFilm]);
+        res.send(filmFunctions);
     } catch (error) {
         console.error("Error fetching movie functions:", error);
         res.status(500).send("Error fetching movie functions");
@@ -135,7 +125,6 @@ router.get("/movie/videos/:codeFilm", async (req, res) => {
     const apiKey = process.env.TMDB_API_KEY;
 
     try {
-        // Realizar la llamada a TMDB desde el backend
         const response = await axios.get(`https://api.themoviedb.org/3/movie/${codeFilm}/videos?api_key=${apiKey}&language=es-MX`);
         res.send(response.data);
     } catch (error) {
@@ -144,11 +133,9 @@ router.get("/movie/videos/:codeFilm", async (req, res) => {
     }
 });
 
-
 // Ruta para obtener información del usuario autenticado
 router.get('/tokenUser', authenticateToken, (req, res) => {
     res.send(req.user);
 });
-
 
 module.exports = router;

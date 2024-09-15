@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const mysql = require("mysql");
 const moment = require('moment-timezone');
 const { authenticateToken } = require("../middleware");
+<<<<<<< Updated upstream
 
 // Conexión a la base de datos cine-aurora
 // const db = mysql.createConnection({
@@ -18,97 +18,115 @@ db.connect((err) => {
         return;
     }
 });
+=======
+const { getRepository } = require("typeorm");
+const { Ticket } = require("../entity/ticket/ticket_user");
+>>>>>>> Stashed changes
 
 // Registro de ticket
-router.post("/createTicket", authenticateToken, (req, res) => {
+router.post("/createTicket", authenticateToken, async (req, res) => {
     const { nameFilm, chair, finalPrice, date, time, typeOfFunction, language, voucher, idUser } = req.body;
 
     // Obtén la hora actual en la zona horaria deseada
-    const purchaseDate = moment().tz('America/New_York').format('YYYY-MM-DD HH:mm:ss');
+    const purchaseDate = moment().tz('America/New_York').toDate();
 
     const chairString = JSON.stringify(chair);
 
-    const insertQuery = 'INSERT INTO ticket (nameFilm, chair, finalPrice, date, time, typeOfFunction, language, voucher, purchaseDate, idUser, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    const values = [nameFilm, chairString, finalPrice, date, time, typeOfFunction, language, voucher, purchaseDate, idUser, 'pending'];
+    try {
+        const ticketRepository = getRepository(Ticket);
+        const ticket = new Ticket();
+        ticket.nameFilm = nameFilm;
+        ticket.chair = chairString;
+        ticket.finalPrice = finalPrice;
+        ticket.date = date;
+        ticket.time = time;
+        ticket.typeOfFunction = typeOfFunction;
+        ticket.language = language;
+        ticket.voucher = voucher;
+        ticket.purchaseDate = purchaseDate;
+        ticket.idUser = idUser;
+        ticket.status = 'pending';
 
-    db.query(insertQuery, values, (err, result) => {
-        if (err) {
-            console.error("Error al registrar ticket:", err);
-            res.status(500).send("Error al registrar ticket");
-        } else {
-            console.log("¡Ticket registrado con éxito y en estado pendiente!", { idUser }, { nameFilm });
-            res.send("¡Ticket registrado con éxito!");
-        }
-    });
+        await ticketRepository.save(ticket);
+        console.log("¡Ticket registrado con éxito y en estado pendiente!", { idUser }, { nameFilm });
+        res.send("¡Ticket registrado con éxito!");
+    } catch (error) {
+        console.error("Error al registrar ticket:", error);
+        res.status(500).send("Error al registrar ticket");
+    }
 });
 
 // Leer todos los tickets
-router.get("/allTicket", authenticateToken, (req, res) => {
-    db.query("SELECT * FROM ticket", (err, result) => {
-        if (err) {
-            console.error("Error al obtener todos los tickets:", err);
-            res.status(500).send("Error al obtener datos");
-        } else {
-            res.send(result);
-        }
-    });
+router.get("/allTicket", authenticateToken, async (req, res) => {
+    try {
+        const ticketRepository = getRepository(Ticket);
+        const tickets = await ticketRepository.find();
+        res.send(tickets);
+    } catch (error) {
+        console.error("Error al obtener todos los tickets:", error);
+        res.status(500).send("Error al obtener datos");
+    }
 });
 
 // Leer un ticket por el id del usuario
-router.get("/ticketUser/:idUser", authenticateToken, (req, res) => {
-    const idUser = req.params.idUser;
-    db.query('SELECT * FROM ticket WHERE idUser = ?', [idUser], (err, result) => {
-        if (err) {
-            console.error("Error al obtener tickets del usuario:", err);
-            res.status(500).send("Error al obtener datos del usuario");
-        } else if (result.length === 0) {
+router.get("/ticketUser/:idUser", authenticateToken, async (req, res) => {
+    const idUser = parseInt(req.params.idUser);
+    try {
+        const ticketRepository = getRepository(Ticket);
+        const tickets = await ticketRepository.find({ where: { idUser } });
+        if (tickets.length === 0) {
             console.log("No se encontraron tickets para este usuario", { idUser });
             res.status(404).send("No se encontraron tickets para este usuario");
         } else {
-            res.send(result);
+            res.send(tickets);
         }
-    });
+    } catch (error) {
+        console.error("Error al obtener tickets del usuario:", error);
+        res.status(500).send("Error al obtener datos del usuario");
+    }
 });
 
 // Actualizar el estado del ticket
-router.post("/updateTicketStatus", authenticateToken, (req, res) => {
+router.post("/updateTicketStatus", authenticateToken, async (req, res) => {
     const { preference_id, status } = req.body;
 
     if (status !== 'paid' && status !== 'pending') {
         return res.status(400).send("Estado no válido.");
     }
 
-    const updateQuery = 'UPDATE ticket SET status = ? WHERE voucher = ?';
-    db.query(updateQuery, [status, preference_id], (err, result) => {
-        if (err) {
-            console.error("Error al actualizar el estado del ticket:", err);
-            res.status(500).send("Error al actualizar el estado del ticket.");
+    try {
+        const ticketRepository = getRepository(Ticket);
+        const result = await ticketRepository.update({ voucher: preference_id }, { status });
+        if (result.affected === 0) {
+            res.status(404).send("Ticket no encontrado");
         } else {
             console.log("El estado del ticket se actualizó con éxito.", { status });
             res.send("Estado del ticket actualizado con éxito.");
         }
-    });
+    } catch (error) {
+        console.error("Error al actualizar el estado del ticket:", error);
+        res.status(500).send("Error al actualizar el estado del ticket.");
+    }
 });
 
-// // Ruta para buscar películas por nombre
-router.get('/searchMovies', authenticateToken, (req, res) => {
+// Ruta para buscar películas por nombre
+router.get('/searchMovies', authenticateToken, async (req, res) => {
     const { name } = req.query;
 
     if (!name) {
         return res.status(400).send("El nombre de la película es obligatorio.");
     }
 
-    const searchQuery = 'SELECT * FROM ticket WHERE nameFilm LIKE ?';
-    const values = [`%${name}%`];
-
-    db.query(searchQuery, values, (err, results) => {
-        if (err) {
-            console.error("Error al buscar películas:", err);
-            res.status(500).send("Error al buscar películas.");
-        } else {
-            res.send(results);
-        }
-    });
+    try {
+        const ticketRepository = getRepository(Ticket);
+        const tickets = await ticketRepository.createQueryBuilder('ticket')
+            .where('ticket.nameFilm LIKE :name', { name: `%${name}%` })
+            .getMany();
+        res.send(tickets);
+    } catch (error) {
+        console.error("Error al buscar películas:", error);
+        res.status(500).send("Error al buscar películas.");
+    }
 });
 
 // Ruta para obtener información del usuario autenticado
