@@ -20,7 +20,7 @@ router.post('/createTicket', authenticateToken, async (req, res) => {
                 nameFilm,
                 chair: JSON.stringify(chair),
                 finalPrice: parseFloat(finalPrice),
-                date: parsedDate,
+                date: parsedDate.toISOString(), 
                 time,
                 typeOfFunction,
                 language,

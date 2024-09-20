@@ -21,26 +21,26 @@ model Customer {
 }
 
 model Ticket {
-  idTicket        Int      @id @default(autoincrement())
-  nameFilm        String?
-  chair           String?
-  finalPrice      Float
-  date            DateTime
-  time            String?
-  typeOfFunction  String?
-  language        String?
-  voucher         String?
-  idUser          Int?
-  purchaseDate    DateTime @default(now())
-  status          TicketStatus @default(pending)
-  customer        Customer? @relation("CustomerTickets", fields: [idUser], references: [idUser])
+    idTicket        Int      @id @default(autoincrement())
+    nameFilm        String?
+    chair           String?
+    finalPrice      Float
+    date            DateTime?
+    time            String?
+    typeOfFunction  String?
+    language        String?
+    voucher         String?
+    idUser          Int?
+    purchaseDate    DateTime @default(now())
+    status          TicketStatus @default(pending)
+    customer        Customer? @relation("CustomerTickets", fields: [idUser], references: [idUser])
 }
 
 model MovieTheater {
   idMovieTheater  Int      @id @default(autoincrement())
   codeFilm        Int?
   nameFilm        String?
-  date            DateTime?
+  date             String?
   time            String?
   typeOfFunction  String?
   language        String?

@@ -2,13 +2,20 @@ import express from 'express';
 import { PrismaClient } from '@prisma/client';
 import { authenticateToken } from '../jwt/middleware.js';
 
+
 const router = express.Router();
 const prisma = new PrismaClient();
 
 // Registro de función
 router.post("/createMovieTheater", authenticateToken, async (req, res) => {
     const { nameFilm, codeFilm, date, time, typeOfFunction, language, price } = req.body;
-    const formattedDate = new Date(date); 
+    
+    // Validación de la fecha
+    const formattedDate = date.split('T')[0];
+    if (!formattedDate) {
+        return res.status(400).send("Fecha inválida");
+    }
+
     try {
         await prisma.movieTheater.create({
             data: {
@@ -21,7 +28,7 @@ router.post("/createMovieTheater", authenticateToken, async (req, res) => {
                 price: parseFloat(price)
             }
         });
-        console.log("¡Función Registrada con Éxito!", { nameFilm }, { date }, { time });
+        console.log("¡Función Registrada con Éxito!", { nameFilm }, { date: formattedDate }, { time });
         res.send("¡Función Registrada con Éxito!");
     } catch (error) {
         console.log(error);
@@ -52,8 +59,8 @@ router.get("/movieFunctions/:codeFilm", authenticateToken, async (req, res) => {
 // Obtener precio según parámetros
 router.get("/getPrice", authenticateToken, async (req, res) => {
     const { codeFilm, date, time, typeOfFunction, language } = req.query;
+    const formattedDate = date.split('T')[0]; 
     try {
-        const formattedDate = new Date(date); 
         const result = await prisma.movieTheater.findFirst({
             where: {
                 codeFilm: parseInt(codeFilm),
@@ -74,6 +81,17 @@ router.get("/getPrice", authenticateToken, async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).send("Error al obtener el precio");
+    }
+});
+
+// Obtener todas las funciones de películas
+router.get("/allMovieTheater", authenticateToken, async (req, res) => {
+    try {
+        const results = await prisma.movieTheater.findMany();
+        res.json(results);
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Error al obtener las funciones de películas");
     }
 });
 

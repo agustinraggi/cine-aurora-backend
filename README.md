@@ -6,6 +6,9 @@ para iniciar la base de datos tenemos que hacer los siguientes pasos:
 4) instalar las librerias que utilizaremos: "npm install"
 5) inicar programa: "npm run dev" 
 
+1) si hacemos cambios de la tabla hacer esto:
+    npx prisma migrate dev --name migration 
+
 usario admin: agustinraggi@gmail.com
 contraseña: admin123
 

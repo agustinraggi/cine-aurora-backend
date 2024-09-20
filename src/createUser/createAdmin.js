@@ -38,9 +38,9 @@ export const createAdmin = async () => {
                 },
             });
 
-            console.log("Usuario administrador creado.");
+            console.log("Usuario administrador creado y su email es:", process.env.ADMIN_EMAIL, "y su contraseña es:",process.env.ADMIN_PASSWORD);
         } else {
-            console.log("Usuario administrador ya existe.");
+            console.log("Usuario administrador ya existe y su email es:", process.env.ADMIN_EMAIL, "y su contraseña es:",process.env.ADMIN_PASSWORD);
         }
     } catch (error) {
         console.error("Error al inicializar la base de datos:", error);
