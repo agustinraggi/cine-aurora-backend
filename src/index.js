@@ -5,6 +5,7 @@ import customerRoutes from "./routes/customer.routes.js";
 import filmRoutes from "./routes/film.routes.js";
 import movieTheaterRoutes from "./routes/movieTheare.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
+import seatsRoutes from "./routes/seats.routes.js"
 import mercadoPagoRoutes from "./mercadoPago.js"
 
 // crear usuario admin
@@ -25,6 +26,7 @@ app.use(customerRoutes);
 app.use(filmRoutes);
 app.use(movieTheaterRoutes);
 app.use(ticketRoutes);
+app.use(seatsRoutes);
 app.use(mercadoPagoRoutes);
 
 const startServer = async () => {

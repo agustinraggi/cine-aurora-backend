@@ -14,7 +14,6 @@ const adminDniPlain = process.env.ADMIN_DNI;
 export const createAdmin = async () => {
     if (!adminEmail || !adminPasswordPlain || !adminDniPlain) {
         console.error("ADMIN_EMAIL, ADMIN_PASSWORD o ADMIN_DNI no están definidos en el archivo .env");
-        process.exit(1);
     }
 
     try {

@@ -1,4 +1,3 @@
-// En mercadoPago.js
 import express from "express";
 import { MercadoPagoConfig, Preference } from "mercadopago";
 
@@ -12,19 +11,26 @@ const client = new MercadoPagoConfig({
 // Ruta para crear una preferencia
 router.post("/create_preference", async (req, res) => {
     try {
+        const { title, quantity, price } = req.body;
+        if (!title || !quantity || !price) {
+            return res.status(400).json({
+                error: "Faltan datos necesarios para crear la preferencia.",
+            });
+        }
+
         const body = {
             items: [
                 {
-                    title: req.body.title,
-                    quantity: Number(req.body.quantity),
-                    unit_price: Number(req.body.price),
+                    title: title,
+                    quantity: Number(quantity),
+                    unit_price: Number(price),
                     currency_id: "ARS",
                 },
             ],
             back_urls: {
-                success: "http://localhost:3000/userActive",
-                failure: "http://localhost:3000/userActive",
-                pending: "http://localhost:3000/userActive",
+                success: "http://localhost:3000/userActive?status=approved",
+                failure: "http://localhost:3000/userActive?status=failed",
+                pending: "http://localhost:3000/userActive?status=pending",
             },
             auto_return: "approved",
         };

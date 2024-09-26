@@ -31,6 +31,7 @@ model Ticket {
     language        String?
     voucher         String?
     idUser          Int?
+    idMovieTheater  Int?
     purchaseDate    DateTime @default(now())
     status          TicketStatus @default(pending)
     customer        Customer? @relation("CustomerTickets", fields: [idUser], references: [idUser])
@@ -57,4 +58,16 @@ enum TicketStatus {
   pending
   paid
   canceled
+}
+
+model Seats {
+  idSeats    Int    @id @default(autoincrement())
+  chair  String?
+  idMovieTheater  Int?
+  statuSeats SeatStatus @default(free)
+}
+
+enum SeatStatus {
+  free
+  buys
 }

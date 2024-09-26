@@ -70,11 +70,12 @@ router.get("/getPrice", authenticateToken, async (req, res) => {
                 language
             },
             select: {
+                idMovieTheater: true,
                 price: true
             }
         });
         if (result) {
-            res.json({ price: result.price });
+            res.json({ id: result.idMovieTheater, price: result.price });
         } else {
             res.status(404).send("Precio no encontrado");
         }

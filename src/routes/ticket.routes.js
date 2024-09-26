@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 // Registro de ticket
 router.post('/createTicket', authenticateToken, async (req, res) => {
-    const { nameFilm, chair, finalPrice, date, time, typeOfFunction, language, voucher, idUser } = req.body;
+    const { nameFilm, chair, finalPrice, date, time, typeOfFunction, language, voucher, idUser, idMovieTheater } = req.body;
     const parsedDate = new Date(date);
     if (isNaN(parsedDate.getTime())) {
         return res.status(400).send("Fecha inválida.");
@@ -27,7 +27,8 @@ router.post('/createTicket', authenticateToken, async (req, res) => {
                 voucher,
                 purchaseDate,
                 idUser,
-                status: 'pending'
+                status: 'pending',
+                idMovieTheater,
             }
         });
         console.log("¡Ticket registrado con éxito y en estado pendiente!", { idUser }, { nameFilm });
