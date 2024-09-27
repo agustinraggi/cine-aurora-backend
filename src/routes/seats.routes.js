@@ -23,6 +23,23 @@ router.post('/updateSeats', async (req, res) => {
         res.status(500).send("Error al registrar silla");
     }
 });
+// Ruta para obtener las sillas ocupadas por idMovieTheater
+router.get('/occupiedSeats/:idMovieTheater', async (req, res) => {
+    const { idMovieTheater } = req.params;
+    try {
+        const occupiedSeats = await prisma.seats.findMany({
+            where: {
+                idMovieTheater: parseInt(idMovieTheater),
+                statuSeats: "buys"
+            }
+        });
+        const chairs = occupiedSeats.map(seat => JSON.parse(seat.chair)).flat();
+        res.json(chairs); 
+    } catch (error) {
+        console.error("Error al obtener sillas ocupadas:", error);
+        res.status(500).send("Error al obtener sillas ocupadas");
+    }
+});
 
 // Ruta para obtener información del usuario autenticado
 router.get('/tokenUser', authenticateToken, (req, res) => {
