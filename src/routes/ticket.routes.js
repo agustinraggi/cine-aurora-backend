@@ -88,6 +88,22 @@ router.post('/updateTicketStatus', authenticateToken, async (req, res) => {
     }
 });
 
+// Actualizar el estado del ticket a "used"
+router.post('/useTicket', authenticateToken, async (req, res) => {
+    const { idTicket } = req.body;
+    try {
+        await prisma.ticket.update({
+            where: { idTicket: idTicket },
+            data: { status: 'used' }
+        });
+        console.log("El ticket ha sido marcado como 'used'.");
+        res.send("El ticket ha sido usado con éxito.");
+    } catch (error) {
+        console.error("Error al usar el ticket:", error);
+        res.status(500).send("Error al actualizar el ticket.");
+    }
+});
+
 // Ruta para buscar películas por nombre
 router.get('/searchMovies', authenticateToken, async (req, res) => {
     const { name } = req.query;
