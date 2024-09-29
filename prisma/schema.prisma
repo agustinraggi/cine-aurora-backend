@@ -57,6 +57,7 @@ model Film {
 enum TicketStatus {
   pending
   paid
+  used
   canceled
 }
 

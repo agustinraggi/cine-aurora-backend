@@ -121,6 +121,24 @@ router.put("/update", authenticateToken, async (req, res) => {
     }
 });
 
+
+// Actualizar contraseña del usuario
+router.put('/changePassword/:idUser', authenticateToken, async (req, res) => {
+    const { idUser } = req.params;
+    const { newPassword } = req.body;
+    try {
+        const newHashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.customer.update({
+            where: { idUser: parseInt(idUser) },
+            data: { password: newHashedPassword }
+        });
+        res.send("Contraseña actualizada con éxito");
+    } catch (err) {
+        console.error("Error al actualizar la contraseña:", err);
+        res.status(500).send("Error en el servidor");
+    }
+});
+
 // Eliminar usuario
 router.delete("/delete/:idUser", authenticateToken, async (req, res) => {
     const { idUser } = req.params;
