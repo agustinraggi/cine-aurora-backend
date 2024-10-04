@@ -97,12 +97,10 @@ router.put("/update", authenticateToken, async (req, res) => {
     } catch (error) {
         return res.status(400).send("Fecha inválida");
     }
-
     const age = calculateAge(formattedDate);
-
     try {
         const user = await prisma.customer.update({
-            where: { idUser },
+            where: { idUser: Number(idUser) },
             data: {
                 mail,
                 name,
@@ -235,6 +233,7 @@ router.post('/recover-password', async (req, res) => {
             return res.status(400).send({ message: 'Usuario no encontrado' });
         }
         const token = jwt.sign({ id: user.idUser, email: user.mail }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+        // cambiar link y que quede asi ${FRONTEND_URL}/reset-password/${token}
         const link = `http://localhost:3000/reset-password/${token}`;
         const mailOptions = {
             from: process.env.EMAIL_USER,

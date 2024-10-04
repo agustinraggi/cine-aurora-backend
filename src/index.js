@@ -15,6 +15,7 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
+    // cambiar el origin que quede asi =>  process.env.FRONTEND_URL || 'http://localhost:3000
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -33,10 +34,9 @@ const startServer = async () => {
     try {
         // Inicializar la base de datos
         await createAdmin();
-
         // Iniciar el servidor después de la inicialización de la base de datos
-        app.listen(3001, () => {
-            console.log("Server on port", 3001);
+        app.listen(process.env.PORT_BACK_URL, () => {
+            console.log("Server on port", process.env.PORT_BACK_URL);
         });
     } catch (error) {
         console.error("Error al iniciar el servidor:", error);

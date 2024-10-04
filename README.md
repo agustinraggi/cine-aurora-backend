@@ -12,6 +12,9 @@ para iniciar la base de datos tenemos que hacer los siguientes pasos:
 usario admin: agustinraggi@gmail.com
 contraseña: admin123
 
+para subir la pagina usamos
+https://render.com/
+
 
 integrantes del grupo:
 1) Agustin Raggi, legajo 50786, comision 302
