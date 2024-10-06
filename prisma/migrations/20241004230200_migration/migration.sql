@@ -27,11 +27,10 @@ CREATE TABLE `Ticket` (
     `language` VARCHAR(191) NULL,
     `voucher` VARCHAR(191) NULL,
     `idUser` INTEGER NULL,
+    `idMovieTheater` INTEGER NULL,
     `purchaseDate` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `status` ENUM('pending', 'paid', 'canceled') NOT NULL DEFAULT 'pending',
-    `idSeat` INTEGER NULL,
+    `status` ENUM('pending', 'paid', 'used', 'canceled') NOT NULL DEFAULT 'pending',
 
-    UNIQUE INDEX `Ticket_idSeat_key`(`idSeat`),
     PRIMARY KEY (`idTicket`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -50,20 +49,23 @@ CREATE TABLE `MovieTheater` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Film` (
+    `idFilm` INTEGER NOT NULL AUTO_INCREMENT,
+    `codeFilm` INTEGER NULL,
+    `nameFilm` VARCHAR(191) NULL,
+
+    PRIMARY KEY (`idFilm`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Seats` (
     `idSeats` INTEGER NOT NULL AUTO_INCREMENT,
-    `idMovieTheater` INTEGER NOT NULL,
-    `numberSeats` VARCHAR(191) NULL,
-    `status` ENUM('free', 'occupied') NOT NULL DEFAULT 'free',
+    `chair` VARCHAR(191) NULL,
+    `idMovieTheater` INTEGER NULL,
+    `statuSeats` ENUM('free', 'buys') NOT NULL DEFAULT 'free',
 
     PRIMARY KEY (`idSeats`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
 ALTER TABLE `Ticket` ADD CONSTRAINT `Ticket_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `Customer`(`idUser`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Ticket` ADD CONSTRAINT `Ticket_idSeat_fkey` FOREIGN KEY (`idSeat`) REFERENCES `Seats`(`idSeats`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `Seats` ADD CONSTRAINT `Seats_idMovieTheater_fkey` FOREIGN KEY (`idMovieTheater`) REFERENCES `MovieTheater`(`idMovieTheater`) ON DELETE RESTRICT ON UPDATE CASCADE;
