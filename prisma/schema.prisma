@@ -53,6 +53,11 @@ model Film {
   codeFilm  Int?
   nameFilm  String?
 }
+model SoonFilm {
+  idSoonFilm    Int    @id @default(autoincrement())
+  codeFilm  Int?
+  nameFilm  String?
+}
 
 enum TicketStatus {
   pending

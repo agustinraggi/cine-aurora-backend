@@ -3,6 +3,7 @@ import cors from 'cors';
 
 import customerRoutes from "./routes/customer.routes.js";
 import filmRoutes from "./routes/film.routes.js";
+import soonFilmRouter from "./routes/soonFilm.routes.js"
 import movieTheaterRoutes from "./routes/movieTheare.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
 import seatsRoutes from "./routes/seats.routes.js"
@@ -15,7 +16,6 @@ const app = express();
 
 // Configuración de CORS
 app.use(cors({
-    // cambiar el origin que quede asi =>  process.env.FRONTEND_URL || 'http://localhost:3000
     origin: 'http://localhost:3000',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -25,6 +25,7 @@ app.use(express.json());
 
 app.use(customerRoutes);
 app.use(filmRoutes);
+app.use(soonFilmRouter);
 app.use(movieTheaterRoutes);
 app.use(ticketRoutes);
 app.use(seatsRoutes);
