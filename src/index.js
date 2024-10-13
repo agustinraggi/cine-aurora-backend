@@ -12,6 +12,7 @@ import mercadoPagoRoutes from "./mercadoPago.js"
 // crear usuario admin
 import {createAdmin}  from "../src/createUser/createAdmin.js"
 
+
 const app = express();
 
 // Configuración de CORS
