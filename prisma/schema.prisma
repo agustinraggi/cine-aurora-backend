@@ -1,0 +1,74 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Customer {
+  idUser    Int      @id @default(autoincrement())
+  mail      String   @unique
+  name      String?
+  surname   String?
+  dni       Int      @unique
+  date      String?
+  age       Int?
+  password  String
+  tips      String   @default("cliente")
+  tickets   Ticket[] @relation("CustomerTickets")
+}
+
+model Ticket {
+    idTicket        Int      @id @default(autoincrement())
+    nameFilm        String?
+    chair           String?
+    finalPrice      Float
+    date            DateTime?
+    time            String?
+    typeOfFunction  String?
+    language        String?
+    voucher         String?
+    idUser          Int?
+    idMovieTheater  Int?
+    purchaseDate    DateTime @default(now())
+    status          TicketStatus @default(pending)
+    customer        Customer? @relation("CustomerTickets", fields: [idUser], references: [idUser])
+}
+
+model MovieTheater {
+  idMovieTheater  Int      @id @default(autoincrement())
+  codeFilm        Int?
+  nameFilm        String?
+  date             String?
+  time            String?
+  typeOfFunction  String?
+  language        String?
+  price           Int?
+}
+
+model Film {
+  idFilm    Int    @id @default(autoincrement())
+  codeFilm  Int?
+  nameFilm  String?
+}
+
+enum TicketStatus {
+  pending
+  paid
+  used
+  canceled
+}
+
+model Seats {
+  idSeats    Int    @id @default(autoincrement())
+  chair  String?
+  idMovieTheater  Int?
+  statuSeats SeatStatus @default(free)
+}
+
+enum SeatStatus {
+  free
+  buys
+}
