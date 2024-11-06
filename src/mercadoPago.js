@@ -22,7 +22,7 @@ router.post("/create_preference", async (req, res) => {
             items: [
                 {
                     title: title,
-                    quantity: Number(quantity),
+                    quantity: 1,
                     unit_price: Number(price),
                     currency_id: "ARS",
                 },

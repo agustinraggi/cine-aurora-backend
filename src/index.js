@@ -1,17 +1,13 @@
 import express from "express";
 import cors from 'cors';
-
 import customerRoutes from "./routes/customer.routes.js";
 import filmRoutes from "./routes/film.routes.js";
-import soonFilmRouter from "./routes/soonFilm.routes.js"
+import soonFilmRouter from "./routes/soonFilm.routes.js";
 import movieTheaterRoutes from "./routes/movieTheare.routes.js";
 import ticketRoutes from "./routes/ticket.routes.js";
-import seatsRoutes from "./routes/seats.routes.js"
-import mercadoPagoRoutes from "./mercadoPago.js"
-
-// crear usuario admin
-import {createAdmin}  from "../src/createUser/createAdmin.js"
-
+import seatsRoutes from "./routes/seats.routes.js";
+import mercadoPagoRoutes from "./mercadoPago.js";
+import { createAdmin } from "../src/createUser/createAdmin.js";
 
 const app = express();
 
@@ -47,3 +43,5 @@ const startServer = async () => {
 };
 
 startServer();
+
+export default app; // Exportar la instancia de app

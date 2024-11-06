@@ -59,7 +59,14 @@ router.get("/movieFunctions/:codeFilm", authenticateToken, async (req, res) => {
 // Obtener precio según parámetros
 router.get("/getPrice", authenticateToken, async (req, res) => {
     const { codeFilm, date, time, typeOfFunction, language } = req.query;
+
+    // Validación de parámetros
+    if (!codeFilm || !date || !time || !typeOfFunction || !language) {
+        return res.status(400).send("Faltan parámetros requeridos");
+    }
+
     const formattedDate = date.split('T')[0]; 
+
     try {
         const result = await prisma.movieTheater.findFirst({
             where: {
@@ -80,11 +87,10 @@ router.get("/getPrice", authenticateToken, async (req, res) => {
             res.status(404).send("Precio no encontrado");
         }
     } catch (error) {
-        console.log(error);
+        console.error(error);
         res.status(500).send("Error al obtener el precio");
     }
 });
-
 // Obtener todas las funciones de películas
 router.get("/allMovieTheater", authenticateToken, async (req, res) => {
     try {
