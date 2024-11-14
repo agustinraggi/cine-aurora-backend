@@ -8,11 +8,10 @@ const client = new MercadoPagoConfig({
     accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
-// Ruta para crear una preferencia
 router.post("/create_preference", async (req, res) => {
     try {
-        const { title, quantity, price } = req.body;
-        if (!title || !quantity || !price) {
+        const { title, quantity, price, idUser } = req.body;
+        if (!title || !quantity || !price || !idUser) {
             return res.status(400).json({
                 error: "Faltan datos necesarios para crear la preferencia.",
             });
@@ -28,9 +27,9 @@ router.post("/create_preference", async (req, res) => {
                 },
             ],
             back_urls: {
-                success: "http://localhost:3000/userActive?status=approved",
-                failure: "http://localhost:3000/userActive?status=failed",
-                pending: "http://localhost:3000/userActive?status=pending",
+                success: `http://localhost:3000/userActive/idUser=${idUser}?status=approved`,
+                failure: `http://localhost:3000/userActive/idUser=${idUser}?status=failed`,
+                pending: `http://localhost:3000/userActive/idUser=${idUser}?status=pending`,
             },
             auto_return: "approved",
         };
