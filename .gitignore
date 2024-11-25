@@ -1,0 +1,25 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+
+Configuración\ local/
+Cookies/
+Datos\ de\ programa/
+Entorno\ de\ red/
+Impresoras/
+Menú\ Inicio/
+Mis\ documentos/
+Plantillas/
+Reciente/
+SendTo/
+AppData/
+Documents/
+Downloads/
+Favorites/
+OneDrive/
+Pictures/
+Videos/
+node_modules/
+*.log
