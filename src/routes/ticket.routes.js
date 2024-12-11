@@ -39,20 +39,23 @@ router.post('/createTicket', authenticateToken, async (req, res) => {
     }
 });
 
-// Leer todos los tickets
-router.get('/allTicket', authenticateToken, async (req, res) => {
-    try {
-        const tickets = await prisma.ticket.findMany();
-        res.send(tickets);
-    } catch (error) {
-        console.error("Error al obtener todos los tickets:", error);
-        res.status(500).send("Error al obtener datos");
-    }
-});
+// Leer todos los tickets por el momento no lo vamos a usar
+// router.get('/allTicket', authenticateToken, async (req, res) => {
+//     try {
+//         const tickets = await prisma.ticket.findMany();
+//         res.send(tickets);
+//     } catch (error) {
+//         console.error("Error al obtener todos los tickets:", error);
+//         res.status(500).send("Error al obtener datos");
+//     }
+// });
 
-// Leer un ticket por el id del usuario
 router.get('/ticketUser/:idUser', authenticateToken, async (req, res) => {
     const idUser = parseInt(req.params.idUser);
+    //lo que hacemos aca es que no pueda ver el usario todos los tickets 
+    if (idUser !== req.user.id) {
+        return res.status(403).send("No tienes permiso para ver estos tickets.");
+    }
     try {
         const tickets = await prisma.ticket.findMany({
             where: { idUser }
@@ -68,7 +71,6 @@ router.get('/ticketUser/:idUser', authenticateToken, async (req, res) => {
         res.status(500).send("Error al obtener datos del usuario");
     }
 });
-
 // Actualizar el estado del ticket
 router.post('/updateTicketStatus', authenticateToken, async (req, res) => {
     const { preference_id, status } = req.body;
